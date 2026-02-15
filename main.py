@@ -17,12 +17,14 @@ anomaly_mod = importlib.import_module("Anomaly_Detection.backend")
 duplicate_mod = importlib.import_module("Duplicate_Detection.backend")
 fraud_mod = importlib.import_module("Fraud_Network_Analysis.backend")
 nlp_mod = importlib.import_module("NLP_Extractor.backend_nlp")
+admin_decision_mod = importlib.import_module("Admin_Decision_Layer.backend")
 # agentic_mod = importlib.import_module("Agentic_Reasoning.backend")
 
 anomaly_app = anomaly_mod.app
 duplicate_app = duplicate_mod.app
 fraud_app = fraud_mod.app
 nlp_app = nlp_mod.app
+admin_decision_app = admin_decision_mod.app
 # agentic_app = agentic_mod.app
 
 app = FastAPI(title="Prayatna Fraud Detection API", description="Integrated API for all fraud detection backends")
@@ -32,6 +34,7 @@ app.mount("/anomaly", WSGIMiddleware(anomaly_app))
 app.mount("/duplicate", WSGIMiddleware(duplicate_app))
 app.mount("/fraud-network", WSGIMiddleware(fraud_app))
 app.mount("/nlp-extractor", WSGIMiddleware(nlp_app))
+app.mount("/admin-decision", WSGIMiddleware(admin_decision_app))
 # app.mount("/agentic-reasoning", WSGIMiddleware(agentic_app))
 
 @app.post("/pipeline")
@@ -229,6 +232,10 @@ def choice_page(request: Request):
 @app.get("/dashboard")
 def dashboard_page(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
+
+@app.get("/admin-decision-page")
+def admin_decision_page(request: Request):
+    return templates.TemplateResponse("admin_decision.html", {"request": request})
 
 @app.get("/")
 def root(request: Request):

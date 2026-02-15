@@ -1,0 +1,34 @@
+{
+  "cases": [
+    {
+      "id": "1",
+      "beneficiary_id": "BEN10458932",
+      "prediction": "Anomaly Detected",
+      "status": "approve",
+      "notes": "Approved"
+    },
+    {
+      "id": "2",
+      "beneficiary_id": "BEN20567890",
+      "prediction": "Duplicate Suspected",
+      "status": "approve",
+      "notes": ""
+    }
+  ],
+  "audit": [
+    {
+      "case_id": "1",
+      "decision": "approve",
+      "notes": "Approved",
+      "timestamp": "2026-02-15T19:56:27.160262",
+      "admin": "admin_user"
+    },
+    {
+      "case_id": "2",
+      "decision": "approve",
+      "notes": "",
+      "timestamp": "2026-02-15T20:04:09.910704",
+      "admin": "admin_user"
+    }
+  ]
+}

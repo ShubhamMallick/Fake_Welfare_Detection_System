@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Decisions - Prayatna Fraud Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        nav {
+            margin-bottom: 10px;
+        }
+        nav a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #007bff;
+        }
+        section {
+            margin-bottom: 20px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #cases, #audit {
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .case, .audit-entry {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav><a href="/">Home</a> | <a href="/dashboard">Dashboard</a></nav>
+        <h1>Admin Decisions</h1>
+        <p>Review and decide on fraud detection cases.</p>
+    </header>
+    <main>
+        <section id="controls">
+            <button onclick="initCases()">Init Cases</button>
+            <button onclick="loadCases()">Load Cases</button>
+            <button onclick="loadAudit()">Load Audit</button>
+        </section>
+        
+        <section>
+            <h2>Pending Cases</h2>
+            <div id="cases"></div>
+        </section>
+        
+        <section>
+            <h2>Submit Decision</h2>
+            <form id="decisionForm">
+                <label for="caseSelect">Select Case:</label>
+                <select id="caseSelect" required>
+                    <option value="">Choose a case</option>
+                </select>
+                
+                <label>Decision:</label>
+                <input type="radio" id="approve" name="decision" value="approve" required> Approve
+                <input type="radio" id="reject" name="decision" value="reject"> Reject
+                
+                <label for="notes">Notes:</label>
+                <textarea id="notes" rows="3" placeholder="Optional notes"></textarea>
+                
+                <button type="button" onclick="submitDecision()">Submit Decision</button>
+            </form>
+        </section>
+        
+        <section>
+            <h2>Audit Log</h2>
+            <div id="audit"></div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 Prayatna Fraud Detection System</p>
+    </footer>
+
+    <script>
+        let cases = [];
+
+        async function initCases() {
+            try {
+                const response = await fetch('/admin-decision/init-cases');
+                const data = await response.json();
+                alert(data.status);
+                loadCases();
+            } catch (error) {
+                alert('Error initializing cases: ' + error.message);
+            }
+        }
+
+        async function loadCases() {
+            try {
+                const response = await fetch('/admin-decision/cases');
+                cases = await response.json();
+                const casesDiv = document.getElementById('cases');
+                casesDiv.innerHTML = cases.map(c => `
+                    <div class="case">
+                        <strong>Case ${c.id}</strong>: ${c.prediction} (Status: ${c.status})<br>
+                        Beneficiary: ${c.beneficiary_id}
+                        ${c.notes ? '<br>Notes: ' + c.notes : ''}
+                    </div>
+                `).join('');
+                
+                // Populate select
+                const select = document.getElementById('caseSelect');
+                select.innerHTML = '<option value="">Choose a case</option>' +
+                    cases.filter(c => c.status === 'pending').map(c => `<option value="${c.id}">Case ${c.id}: ${c.prediction}</option>`).join('');
+            } catch (error) {
+                document.getElementById('cases').innerHTML = '<p>Error loading cases: ' + error.message + '</p>';
+            }
+        }
+
+        async function submitDecision() {
+            const caseId = document.getElementById('caseSelect').value;
+            const decision = document.querySelector('input[name="decision"]:checked')?.value;
+            const notes = document.getElementById('notes').value;
+            
+            if (!caseId || !decision) {
+                alert('Please select a case and decision');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/admin-decision/decide', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({case_id: caseId, decision: decision, notes: notes})
+                });
+                const data = await response.json();
+                alert(data.status);
+                loadCases();
+                loadAudit();
+            } catch (error) {
+                alert('Error submitting decision: ' + error.message);
+            }
+        }
+
+        async function loadAudit() {
+            try {
+                const response = await fetch('/admin-decision/audit');
+                const audit = await response.json();
+                const auditDiv = document.getElementById('audit');
+                auditDiv.innerHTML = audit.map(a => `
+                    <div class="audit-entry">
+                        <strong>${a.timestamp}</strong>: Case ${a.case_id} - ${a.decision} by ${a.admin}<br>
+                        Notes: ${a.notes}
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('audit').innerHTML = '<p>Error loading audit: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

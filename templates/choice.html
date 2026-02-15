@@ -80,6 +80,7 @@
         <button onclick="goToFraud()">Analyze Fraud</button>
         <button onclick="goToPipeline()">Run Full Pipeline</button>
         <button onclick="goToDashboard()">View Dashboard</button>
+        <button onclick="goToAdminDecision()">Admin Decisions</button>
     </main>
     <footer>
         <p>&copy; 2026 Prayatna Fraud Detection System</p>
@@ -114,6 +115,10 @@
 
         function goToDashboard() {
             window.location.href = '/dashboard';
+        }
+
+        function goToAdminDecision() {
+            window.location.href = '/admin-decision-page';
         }
     </script>
 </body>
