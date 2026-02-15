@@ -4,82 +4,158 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NLP Feature Extraction - Prayatna Fraud Detection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f4f4f4;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #333;
+            min-height: 100vh;
+            animation: fadeIn 1s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         header {
             text-align: center;
             margin-bottom: 20px;
+            animation: slideDown 0.8s ease-out;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        nav {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            animation: fadeIn 1.2s ease-in;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 0 15px;
+            transition: all 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        nav a:hover {
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            background: rgba(255, 215, 0, 0.1);
         }
         main {
             max-width: 800px;
             margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            animation: zoomIn 1s ease-out;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
         h1 {
-            color: #007bff;
+            color: #333;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+            to { text-shadow: 2px 2px 4px rgba(255,215,0,0.8); }
         }
         form {
             margin-bottom: 20px;
+            animation: fadeInUp 1.5s ease-out;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            color: #555;
         }
         input[type="file"], button {
             display: block;
             width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
             box-sizing: border-box;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+        input[type="file"]:hover, input[type="file"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
         }
         button {
-            background: #007bff;
+            background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
             border: none;
             cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         button:hover {
-            background: #0056b3;
+            background: linear-gradient(45deg, #764ba2, #667eea);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
         }
         #result {
             margin-top: 20px;
-            padding: 10px;
+            padding: 15px;
             background: #f8f9fa;
             border: 1px solid #dee2e6;
-            border-radius: 4px;
+            border-radius: 8px;
             white-space: pre-wrap;
+            animation: fadeIn 2s ease-in;
         }
         footer {
             text-align: center;
             margin-top: 20px;
             font-size: 0.9em;
-            color: #666;
+            color: #fff;
+            animation: fadeIn 2.5s ease-in;
         }
     </style>
 </head>
 <body>
     <header>
-        <nav><a href="/">Home</a> | <a href="/dashboard">Dashboard</a></nav>
+        <nav><a href="/">Home</a> | <a href="/dashboard">Dashboard</a> | <a href="/pipeline-page">Pipeline</a></nav>
         <h1>NLP Feature Extraction</h1>
         <p>Upload a PDF document to extract features for fraud detection analysis.</p>
     </header>
     <main>
+        <section>
+            <h2>How to Use</h2>
+            <ol>
+                <li>Select your welfare application PDF file using the file input below.</li>
+                <li>Click the "Extract Features" button to process the document.</li>
+                <li>Review the extracted features such as beneficiary details, income, and other key information.</li>
+                <li>Navigate to the next step in the fraud detection process.</li>
+            </ol>
+        </section>
         <form id="nlpForm">
             <label for="pdfFile">Select PDF File:</label>
             <input type="file" id="pdfFile" accept=".pdf">
-            <button type="button" onclick="extract()">Extract Features</button>
+            <p>Upload your welfare application PDF to extract key information like beneficiary details, income, etc.</p>
+            <button type="button" onclick="extract()"><i class="fas fa-upload"></i> Extract Features</button>
         </form>
         <div id="result"></div>
     </main>

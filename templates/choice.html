@@ -1,125 +1,287 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Choose Analysis - Prayatna Fraud Detection</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        nav {
-            margin-bottom: 10px;
-        }
-        nav a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        nav a:hover {
-            text-decoration: underline;
-        }
-        main {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #007bff;
-        }
-        #features {
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            white-space: pre-wrap;
-        }
-        button {
-            display: inline-block;
-            margin: 10px;
-            padding: 10px 20px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #0056b3;
-        }
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: #666;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Choose Analysis - Prayatna Fraud Detection</title>
+
+<style>
+/* ---------- Global ---------- */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    min-height: 100vh;
+    color: #333;
+    animation: fadeIn 0.8s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Navigation ---------- */
+nav {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0 15px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+nav a:hover {
+    background: rgba(255,255,255,0.25);
+    color: #ffe066;
+    transform: translateY(-2px);
+}
+
+/* ---------- Header ---------- */
+header {
+    text-align: center;
+    color: white;
+    margin-bottom: 20px;
+}
+
+/* ---------- Layout ---------- */
+.container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+    width: 230px;
+    background: rgba(255,255,255,0.95);
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+    animation: slideLeft 0.7s ease;
+}
+
+@keyframes slideLeft {
+    from { transform: translateX(-40px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.sidebar button {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(45deg,#f093fb,#f5576c);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.sidebar button:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+
+/* ---------- Main ---------- */
+.main-content {
+    flex: 1;
+    background: white;
+    padding: 28px;
+    border-radius: 16px;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+    animation: fadeIn 1s ease;
+}
+
+.section-title {
+    margin-top: 0;
+    color: #f5576c;
+}
+
+/* ---------- Feature Grid ---------- */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.feature-card {
+    background: #f8f9fc;
+    padding: 18px;
+    border-radius: 14px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    animation: fadeIn 0.8s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+}
+
+.feature-card h4 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #777;
+    text-transform: uppercase;
+}
+
+.feature-card p {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+    word-break: break-word;
+}
+
+/* ---------- Buttons ---------- */
+.center-buttons {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.center-btn {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(45deg,#f093fb,#f5576c);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.center-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+/* ---------- Empty Message ---------- */
+.empty {
+    padding: 20px;
+    background: #fff3cd;
+    border-radius: 12px;
+    color: #856404;
+    animation: fadeIn 0.6s ease;
+}
+
+/* ---------- Footer ---------- */
+footer {
+    text-align: center;
+    margin-top: 25px;
+    color: white;
+}
+</style>
 </head>
+
 <body>
-    <header>
-        <nav><a href="/">Home</a> | <a href="/dashboard">Dashboard</a></nav>
-        <h1>Choose Analysis Type</h1>
-        <p>Select the type of fraud detection analysis you want to perform with the extracted features.</p>
-    </header>
-    <main>
-        <h2>Extracted Features</h2>
-        <div id="features"></div>
-        <button onclick="goToAnomaly()">Analyze Anomaly</button>
-        <button onclick="goToDuplicate()">Analyze Duplicate</button>
-        <button onclick="goToFraud()">Analyze Fraud</button>
-        <button onclick="goToPipeline()">Run Full Pipeline</button>
-        <button onclick="goToDashboard()">View Dashboard</button>
+
+<!-- Navigation -->
+<nav>
+    <a href="/">Home</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/pipeline-page">Run Pipeline</a>
+</nav>
+
+<header>
+    <h1>Choose Analysis Type</h1>
+    <p>Select fraud analysis using extracted NLP features.</p>
+</header>
+
+<div class="container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <button onclick="goToDashboard()">Dashboard</button>
         <button onclick="goToAdminDecision()">Admin Decisions</button>
-    </main>
-    <footer>
-        <p>&copy; 2026 Prayatna Fraud Detection System</p>
-    </footer>
+        <button onclick="goToPipeline()">Run New Pipeline</button>
+    </aside>
 
-    <script>
-        window.onload = function() {
-            const features = JSON.parse(localStorage.getItem('extractedFeatures'));
-            const featuresDiv = document.getElementById('features');
-            if (features) {
-                featuresDiv.innerHTML = '<pre>' + JSON.stringify(features, null, 2) + '</pre>';
-            } else {
-                featuresDiv.innerHTML = '<p>No features found. Please extract from NLP first.</p>';
-            }
-        }
+    <!-- Main -->
+    <section class="main-content">
 
-        function goToAnomaly() {
-            window.location.href = '/anomaly';
-        }
+        <h2 class="section-title">Extracted Features</h2>
+        <p>Review the features extracted from your PDF document. These will be used for fraud detection analysis.</p>
+        <div id="features"></div>
 
-        function goToDuplicate() {
-            window.location.href = '/duplicate';
-        }
+        <div class="center-buttons">
+            <p>Choose one of the analysis types below to proceed with fraud detection.</p>
+            <button class="center-btn" onclick="goToAnomaly()">Analyze Anomaly</button>
+            <button class="center-btn" onclick="goToDuplicate()">Analyze Duplicate</button>
+            <button class="center-btn" onclick="goToFraud()">Analyze Fraud</button>
+        </div>
 
-        function goToFraud() {
-            window.location.href = '/fraud';
-        }
+    </section>
+</div>
 
-        function goToPipeline() {
-            window.location.href = '/pipeline-page';
-        }
+<footer>
+    <p>&copy; 2026 Prayatna Fraud Detection System</p>
+</footer>
 
-        function goToDashboard() {
-            window.location.href = '/dashboard';
-        }
+<script>
+function formatValue(value) {
+    if (value === null || value === undefined) return "—";
+    if (typeof value === "object") {
+        if (Array.isArray(value)) return value.join(", ");
+        return JSON.stringify(value, null, 1);
+    }
+    return value;
+}
 
-        function goToAdminDecision() {
-            window.location.href = '/admin-decision-page';
-        }
-    </script>
+function renderFeatures(features) {
+    if (!features || Object.keys(features).length === 0) {
+        return `<div class="empty">No extracted features found. Please run NLP extraction first.</div>`;
+    }
+
+    let html = `<div class="features-grid">`;
+
+    for (const [key, value] of Object.entries(features)) {
+        html += `
+            <div class="feature-card">
+                <h4>${key.replace(/_/g," ")}</h4>
+                <p>${formatValue(value)}</p>
+            </div>
+        `;
+    }
+
+    html += `</div>`;
+    return html;
+}
+
+window.onload = function () {
+    try {
+        const stored = localStorage.getItem("extractedFeatures");
+        const features = stored ? JSON.parse(stored) : null;
+        document.getElementById("features").innerHTML = renderFeatures(features);
+    } catch {
+        document.getElementById("features").innerHTML =
+            `<div class="empty">Error loading extracted features.</div>`;
+    }
+};
+
+/* Navigation */
+function goToAnomaly() { window.location.href = "/anomaly"; }
+function goToDuplicate() { window.location.href = "/duplicate"; }
+function goToFraud() { window.location.href = "/fraud"; }
+function goToPipeline() { window.location.href = "/pipeline-page"; }
+function goToDashboard() { window.location.href = "/dashboard"; }
+function goToAdminDecision() { window.location.href = "/admin-decision-page"; }
+</script>
+
 </body>
 </html>

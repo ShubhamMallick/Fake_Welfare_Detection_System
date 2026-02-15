@@ -3,54 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Decisions - Prayatna Fraud Detection</title>
+    <title>Admin Decision Layer - Prayatna Fraud Detection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f4f4f4;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #333;
+            min-height: 100vh;
+            animation: fadeIn 1s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         header {
             text-align: center;
             margin-bottom: 20px;
+            animation: slideDown 0.8s ease-out;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         nav {
-            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            animation: fadeIn 1.2s ease-in;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         nav a {
-            color: #007bff;
+            color: #fff;
             text-decoration: none;
+            font-weight: bold;
+            margin: 0 15px;
+            transition: all 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 5px;
         }
         nav a:hover {
-            text-decoration: underline;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            background: rgba(255, 215, 0, 0.1);
         }
         main {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            animation: zoomIn 1s ease-out;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
         h1 {
-            color: #007bff;
+            color: #333;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+            to { text-shadow: 2px 2px 4px rgba(255,215,0,0.8); }
         }
         section {
             margin-bottom: 20px;
+            animation: fadeInUp 1.5s ease-out;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         button {
-            background: #007bff;
+            background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
             border: none;
             padding: 10px 15px;
             margin: 5px;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
         button:hover {
-            background: #0056b3;
+            background: linear-gradient(45deg, #764ba2, #667eea);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+            transform: translateY(-2px);
         }
         form {
             margin-bottom: 20px;
@@ -59,30 +107,39 @@
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            color: #555;
         }
         select, textarea {
             width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        select:focus, textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
         }
         #cases, #audit {
             border: 1px solid #dee2e6;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 15px;
+            border-radius: 10px;
             max-height: 300px;
             overflow-y: auto;
+            animation: fadeIn 2s ease-in;
         }
         .case, .audit-entry {
             border-bottom: 1px solid #eee;
             padding: 10px 0;
+            animation: fadeIn 2.5s ease-in;
         }
         footer {
             text-align: center;
             margin-top: 20px;
             font-size: 0.9em;
-            color: #666;
+            color: #fff;
+            animation: fadeIn 2.5s ease-in;
         }
     </style>
 </head>
@@ -93,20 +150,23 @@
         <p>Review and decide on fraud detection cases.</p>
     </header>
     <main>
+        <section id="intro">
+            <h2>About Admin Decisions</h2>
+            <p>Admin decisions allow authorized users to review, approve, or reject fraud detection cases. Decisions are logged in an audit trail for compliance and tracking.</p>
+        </section>
         <section id="controls">
             <button onclick="initCases()">Init Cases</button>
-            <button onclick="loadCases()">Load Cases</button>
+            <button onclick="loadCases()"><i class="fas fa-list"></i> Load Cases</button>
             <button onclick="loadAudit()">Load Audit</button>
         </section>
-        
         <section>
             <h2>Pending Cases</h2>
             <div id="cases"></div>
         </section>
-        
         <section>
             <h2>Submit Decision</h2>
-            <form id="decisionForm">
+            <div id="decisionForm" style="display:block;">
+                <p>Review and decide on fraud detection cases.</p>
                 <label for="caseSelect">Select Case:</label>
                 <select id="caseSelect" required>
                     <option value="">Choose a case</option>
@@ -119,6 +179,8 @@
                 <label for="notes">Notes:</label>
                 <textarea id="notes" rows="3" placeholder="Optional notes"></textarea>
                 
+                <button type="button" onclick="submitDecision()"><i class="fas fa-check"></i> Submit Decision</button>
+            </div>
                 <button type="button" onclick="submitDecision()">Submit Decision</button>
             </form>
         </section>

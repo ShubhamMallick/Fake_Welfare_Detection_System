@@ -133,40 +133,30 @@ async def pipeline(file: UploadFile = File(...)):
 
 @app.get("/dashboard-data")
 def get_dashboard_data():
-    try:
-        # Import necessary modules
-        import pandas as pd
-        import networkx as nx
-        from Fraud_Network_Analysis.backend import df, G
-        
-        # Basic stats
-        total_beneficiaries = int(len(df))
-        fraud_rings = int(sum(1 for c in nx.connected_components(G) if len(c) >= 5))
-        
-        # Anomaly stats (simplified)
-        anomaly_count = int((df['fraud_ring_member'] == 1).sum())
-        
-        # Duplicate stats (simplified, using linkage)
-        duplicate_count = int((df['is_duplicate'] == 1).sum())
-        
-        # Risk distribution
-        high_risk = int((df['phone_degree'] > 3).sum())
-        medium_risk = int(((df['phone_degree'] <= 3) & (df['phone_degree'] > 1)).sum())
-        low_risk = int((df['phone_degree'] <= 1).sum())
-        
-        return {
-            "total_beneficiaries": total_beneficiaries,
-            "fraud_rings": fraud_rings,
-            "anomaly_count": anomaly_count,
-            "duplicate_count": duplicate_count,
-            "risk_distribution": {
-                "high": high_risk,
-                "medium": medium_risk,
-                "low": low_risk
-            }
-        }
-    except Exception as e:
-        return {"error": str(e)}
+    # Load data from admin decisions
+    import os
+    data_file = os.path.join(os.path.dirname(__file__), 'admin_decisions.json')
+    if os.path.exists(data_file):
+        import json
+        with open(data_file, 'r') as f:
+            data = json.load(f)
+    else:
+        data = {'cases': [], 'audit': []}
+    
+    anomalies = sum(1 for c in data['cases'] if c.get('prediction') == 'Anomaly Detected')
+    duplicates = sum(1 for c in data['cases'] if c.get('prediction') == 'Duplicate Suspected')
+    frauds = sum(1 for c in data['cases'] if 'Fraud' in c.get('prediction', ''))
+    agentic_reports = len(data['audit'])
+    total_cases = len(data['cases'])
+    
+    return {
+        "total_cases": total_cases,
+        "anomalies": anomalies,
+        "duplicates": duplicates,
+        "frauds": frauds,
+        "agentic_reports": agentic_reports,
+        "cases": data['cases']
+    }
 
 @app.post("/generate-report")
 async def generate_report(case_data: dict):
@@ -193,7 +183,8 @@ async def generate_report(case_data: dict):
         add_data(key, value)
     
     buffer = BytesIO()
-    pdf.output(buffer)
+    pdf_bytes = pdf.output(dest='S').encode('latin1')
+    buffer.write(pdf_bytes)
     buffer.seek(0)
     return StreamingResponse(buffer, media_type='application/pdf', headers={"Content-Disposition": "attachment; filename=fraud_report.pdf"})
 

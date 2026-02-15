@@ -3,66 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fraud Detection Dashboard - Prayatna Fraud Detection</title>
+    <title>Fraud Detection Dashboard - Prayatna</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f4f4f4;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: #333;
+            min-height: 100vh;
+            animation: fadeIn 1s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         header {
             text-align: center;
             margin-bottom: 20px;
+            animation: slideDown 0.8s ease-out;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         nav {
-            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            animation: fadeIn 1.2s ease-in;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         nav a {
-            color: #007bff;
+            color: #fff;
             text-decoration: none;
+            font-weight: bold;
+            margin: 0 15px;
+            transition: all 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 5px;
         }
         nav a:hover {
-            text-decoration: underline;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            background: rgba(255, 215, 0, 0.1);
         }
         main {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            animation: zoomIn 1s ease-out;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
         h1 {
-            color: #007bff;
+            color: #333;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+            to { text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
         }
         .stats {
             display: flex;
             justify-content: space-around;
             margin-bottom: 20px;
+            animation: fadeInUp 1.5s ease-out;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .stat {
             text-align: center;
-            padding: 10px;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
+            padding: 20px;
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+            transition: transform 0.3s ease;
+        }
+        .stat:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.5);
         }
         .charts {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
+            animation: fadeIn 2s ease-in;
         }
         .chart-container {
             flex: 1 1 45%;
             min-width: 300px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s ease;
+        }
+        .chart-container:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        .cases-section {
+            margin-top: 30px;
+            animation: fadeIn 3s ease-in;
+        }
+        .cases-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .cases-table th, .cases-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .cases-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .cases-table tr:hover {
+            background: #f1f1f1;
         }
         footer {
             text-align: center;
             margin-top: 20px;
             font-size: 0.9em;
-            color: #666;
+            color: #fff;
+            animation: fadeIn 2.5s ease-in;
         }
     </style>
 </head>
@@ -73,86 +156,118 @@
         <p>Overview of fraud statistics and visualizations.</p>
     </header>
     <main>
-        <div class="stats" id="stats"></div>
-        <div class="charts">
-            <div class="chart-container">
-                <canvas id="riskChart"></canvas>
+        <section class="summary-section">
+            <h2>Summary Overview</h2>
+            <p>The dashboard provides an overview of fraud detection statistics, including total cases, anomalies, duplicates, frauds, and agentic reports. Review the data visualizations and case details below.</p>
+            <div class="stats" id="stats"></div>
+        </section>
+        
+        <section class="visualizations-section">
+            <h2>Data Visualizations</h2>
+            <div class="charts">
+                <div class="chart-container">
+                    <h3>Analysis Results</h3>
+                    <canvas id="riskChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Cases Distribution</h3>
+                    <canvas id="fraudChart"></canvas>
+                </div>
             </div>
-            <div class="chart-container">
-                <canvas id="fraudChart"></canvas>
-            </div>
-        </div>
+        </section>
+        
+        <section class="details-section">
+            <h2>Case Details</h2>
+            <div id="cases-table"></div>
+        </section>
     </main>
     <footer>
         <p>&copy; 2026 Prayatna Fraud Detection System</p>
     </footer>
 
     <script>
-        async function loadDashboard() {
-            try {
-                const response = await fetch('/dashboard-data');
-                const data = await response.json();
-                console.log(data);
-                
-                // Display stats
-                const statsDiv = document.getElementById('stats');
-                statsDiv.innerHTML = `
-                    <div class="stat"><h3>Total Beneficiaries</h3><p>${data.total_beneficiaries}</p></div>
-                    <div class="stat"><h3>Fraud Rings</h3><p>${data.fraud_rings}</p></div>
-                    <div class="stat"><h3>Anomalies</h3><p>${data.anomaly_count}</p></div>
-                    <div class="stat"><h3>Duplicates</h3><p>${data.duplicate_count}</p></div>
-                `;
-                
-                // Risk Distribution Bar Chart
-                const ctxRisk = document.getElementById('riskChart').getContext('2d');
-                new Chart(ctxRisk, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Low Risk', 'Medium Risk', 'High Risk'],
-                        datasets: [{
-                            label: 'Beneficiaries',
-                            data: [data.risk_distribution.low, data.risk_distribution.medium, data.risk_distribution.high],
-                            backgroundColor: ['#28a745', '#ffc107', '#dc3545']
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Risk Distribution'
-                            }
+    async function loadDashboard() {
+        try {
+            // Auto-init cases
+            await fetch('/admin-decision/init-cases');
+            
+            const response = await fetch('/dashboard-data');
+            const data = await response.json();
+            console.log(data);
+            
+            // Display stats
+            const statsDiv = document.getElementById('stats');
+            statsDiv.innerHTML = `
+                <div class="stat"><h3>Total Cases</h3><p>${data.total_cases}</p></div>
+                <div class="stat"><h3>Anomalies</h3><p>${data.anomalies}</p></div>
+                <div class="stat"><h3>Duplicates</h3><p>${data.duplicates}</p></div>
+                <div class="stat"><h3>Frauds</h3><p>${data.frauds}</p></div>
+                <div class="stat"><h3>Agentic Reports</h3><p>${data.agentic_reports}</p></div>
+            `;
+            
+            // Analysis Types Bar Chart
+            const ctxAnalysis = document.getElementById('riskChart').getContext('2d');
+            new Chart(ctxAnalysis, {
+                type: 'bar',
+                data: {
+                    labels: ['Anomalies', 'Duplicates', 'Frauds', 'Agentic Reports'],
+                    datasets: [{
+                        label: 'Count',
+                        data: [data.anomalies, data.duplicates, data.frauds, data.agentic_reports],
+                        backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Analysis Results'
                         }
                     }
-                });
-                
-                // Fraud Types Pie Chart
-                const ctxFraud = document.getElementById('fraudChart').getContext('2d');
-                new Chart(ctxFraud, {
-                    type: 'pie',
-                    data: {
-                        labels: ['Fraud Rings', 'Anomalies', 'Duplicates'],
-                        datasets: [{
-                            data: [data.fraud_rings, data.anomaly_count, data.duplicate_count],
-                            backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe']
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Fraud Types Distribution'
-                            }
+                }
+            });
+            
+            // Cases Distribution Pie Chart
+            const ctxCases = document.getElementById('fraudChart').getContext('2d');
+            new Chart(ctxCases, {
+                type: 'pie',
+                data: {
+                    labels: ['Anomalies', 'Duplicates', 'Frauds', 'Agentic Reports'],
+                    datasets: [{
+                        data: [data.anomalies, data.duplicates, data.frauds, data.agentic_reports],
+                        backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Cases by Analysis Type'
                         }
                     }
+                }
+            });
+            
+            // Populate cases table
+            if (data.cases && data.cases.length > 0) {
+                let html = '<table class="cases-table"><thead><tr><th>ID</th><th>Beneficiary ID</th><th>Prediction</th><th>Score</th><th>Status</th></tr></thead><tbody>';
+                data.cases.forEach(c => {
+                    const score = c.anomaly_score || c.duplicate_risk || c.fraud_probability || 'N/A';
+                    html += `<tr><td>${c.id}</td><td>${c.beneficiary_id}</td><td>${c.prediction}</td><td>${score}</td><td>${c.status}</td></tr>`;
                 });
-            } catch (error) {
-                document.getElementById('stats').innerHTML = '<p>Error loading dashboard: ' + error.message + '</p>';
+                html += '</tbody></table>';
+                document.getElementById('cases-table').innerHTML = html;
             }
+
+        } catch (error) {
+            console.error("Dashboard load error:", error);
         }
-        
-        loadDashboard();
-    </script>
+    }
+
+    loadDashboard();
+</script>
+
 </body>
 </html>

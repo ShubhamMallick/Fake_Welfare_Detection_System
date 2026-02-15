@@ -4,80 +4,136 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fraud Network Analysis - Prayatna Fraud Detection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f4f4f4;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
             color: #333;
+            min-height: 100vh;
+            animation: fadeIn 1s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         header {
             text-align: center;
             margin-bottom: 20px;
+            animation: slideDown 0.8s ease-out;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         nav {
-            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            animation: fadeIn 1.2s ease-in;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         nav a {
-            color: #007bff;
+            color: #fff;
             text-decoration: none;
+            font-weight: bold;
+            margin: 0 15px;
+            transition: all 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 5px;
         }
         nav a:hover {
-            text-decoration: underline;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            background: rgba(255, 215, 0, 0.1);
         }
         main {
-            max-width: 600px;
+            max-width: 1000px;
             margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            animation: zoomIn 1s ease-out;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
         h1 {
-            color: #007bff;
+            color: #333;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+            to { text-shadow: 2px 2px 4px rgba(255,215,0,0.8); }
+        }
+        form {
+            margin-bottom: 20px;
+            animation: fadeInUp 1.5s ease-out;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .form-group {
             margin-bottom: 15px;
         }
         label {
             display: block;
-            font-weight: bold;
             margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
         }
-        input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            display: block;
+        input[type="text"] {
             width: 100%;
             padding: 10px;
-            background: #007bff;
-            color: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        input[type="text"]:focus {
+            border-color: #ffecd2;
+            box-shadow: 0 0 10px rgba(255, 236, 210, 0.3);
+        }
+        button {
+            background: linear-gradient(45deg, #ffecd2, #fcb69f);
+            color: #333;
             border: none;
-            border-radius: 4px;
+            padding: 12px 25px;
+            border-radius: 8px;
             cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 236, 210, 0.3);
         }
         button:hover {
-            background: #0056b3;
+            background: linear-gradient(45deg, #fcb69f, #ffecd2);
+            box-shadow: 0 6px 20px rgba(255, 236, 210, 0.5);
+            transform: translateY(-2px);
         }
         #result {
             margin-top: 20px;
-            padding: 10px;
+            padding: 20px;
             background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            white-space: pre-wrap;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            animation: fadeIn 2s ease-in;
         }
         footer {
             text-align: center;
             margin-top: 20px;
             font-size: 0.9em;
-            color: #666;
+            color: #fff;
+            animation: fadeIn 2.5s ease-in;
         }
     </style>
 </head>
@@ -85,15 +141,18 @@
     <header>
         <nav><a href="/">Home</a> | <a href="/dashboard">Dashboard</a></nav>
         <h1>Fraud Network Analysis</h1>
-        <p>Enter beneficiary ID to analyze fraud networks and patterns.</p>
+        <p>Enter features to analyze fraud networks and patterns.</p>
     </header>
     <main>
-        <form id="fraudForm">
-            <div class="form-group">
-                <label for="beneficiary_id">Beneficiary ID:</label>
-                <input type="text" id="beneficiary_id" required>
-            </div>
-            <button type="button" onclick="predict()">Analyze Fraud</button>
+        <section>
+            <h2>About Fraud Network Analysis</h2>
+            <p>Fraud network analysis examines relationships and patterns between entities to detect organized fraud schemes. Enter the features to analyze fraud networks.</p>
+        </section>
+        <form>
+            <label for="features">Enter Features (JSON):</label>
+            <textarea id="features" placeholder='{"feature1": "value1", "feature2": "value2"}'></textarea>
+            <p>Enter the features to analyze fraud network patterns.</p>
+            <button onclick="predict()"><i class="fas fa-project-diagram"></i> Analyze Fraud</button>
         </form>
         <div id="result"></div>
     </main>
