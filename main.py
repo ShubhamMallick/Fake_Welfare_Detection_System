@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.wsgi import WSGIMiddleware
-from fastapi import UploadFile, File
-from fastapi.responses import JSONResponse
+from fpdf import FPDF
+from fastapi.responses import StreamingResponse
+from io import BytesIO
 from fastapi.templating import Jinja2Templates
-from fastapi import Request
+from fastapi import Request, UploadFile, File
 import uvicorn
 import importlib
 import re
@@ -136,19 +137,19 @@ def get_dashboard_data():
         from Fraud_Network_Analysis.backend import df, G
         
         # Basic stats
-        total_beneficiaries = len(df)
-        fraud_rings = sum(1 for c in nx.connected_components(G) if len(c) >= 5)
+        total_beneficiaries = int(len(df))
+        fraud_rings = int(sum(1 for c in nx.connected_components(G) if len(c) >= 5))
         
         # Anomaly stats (simplified)
-        anomaly_count = (df['fraud_ring_member'] == 1).sum()
+        anomaly_count = int((df['fraud_ring_member'] == 1).sum())
         
         # Duplicate stats (simplified, using linkage)
-        duplicate_count = (df['aadhaar_count'] > 1).sum()
+        duplicate_count = int((df['is_duplicate'] == 1).sum())
         
         # Risk distribution
-        high_risk = (df['phone_degree'] > 3).sum()
-        medium_risk = ((df['phone_degree'] <= 3) & (df['phone_degree'] > 1)).sum()
-        low_risk = (df['phone_degree'] <= 1).sum()
+        high_risk = int((df['phone_degree'] > 3).sum())
+        medium_risk = int(((df['phone_degree'] <= 3) & (df['phone_degree'] > 1)).sum())
+        low_risk = int((df['phone_degree'] <= 1).sum())
         
         return {
             "total_beneficiaries": total_beneficiaries,
@@ -163,6 +164,35 @@ def get_dashboard_data():
         }
     except Exception as e:
         return {"error": str(e)}
+
+@app.post("/generate-report")
+async def generate_report(case_data: dict):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Fraud Detection Report", ln=True, align='C')
+    pdf.cell(200, 10, txt="", ln=True)  # space
+    
+    def add_data(key, value, indent=0):
+        indent_str = "  " * indent
+        if isinstance(value, dict):
+            pdf.cell(200, 10, txt=f"{indent_str}{key}:", ln=True)
+            for subkey, subvalue in value.items():
+                add_data(subkey, subvalue, indent + 1)
+        elif isinstance(value, list):
+            pdf.cell(200, 10, txt=f"{indent_str}{key}:", ln=True)
+            for item in value:
+                pdf.cell(200, 10, txt=f"{indent_str}  - {item}", ln=True)
+        else:
+            pdf.cell(200, 10, txt=f"{indent_str}{key}: {value}", ln=True)
+    
+    for key, value in case_data.items():
+        add_data(key, value)
+    
+    buffer = BytesIO()
+    pdf.output(buffer)
+    buffer.seek(0)
+    return StreamingResponse(buffer, media_type='application/pdf', headers={"Content-Disposition": "attachment; filename=fraud_report.pdf"})
 
 @app.get("/")
 def root(request: Request):

@@ -161,9 +161,11 @@
                         html += '<h2>Confidence Genuine</h2><p>' + result.confidence_genuine + '%</p>';
                     }
                     html += '<h2>Details</h2><ul>';
-                    result.details.forEach(detail => {
-                        html += '<li>' + detail + '</li>';
-                    });
+                    if (result.details && Array.isArray(result.details)) {
+                        result.details.forEach(detail => {
+                            html += '<li>' + detail + '</li>';
+                        });
+                    }
                     html += '</ul>';
                     html += '<button onclick="goToAgentic()">Proceed to Agentic Reasoning</button>';
                     document.getElementById('result').innerHTML = html;
@@ -176,6 +178,25 @@
         function goToAgentic() {
             localStorage.setItem('agentic_case_data', JSON.stringify(window.result));
             window.location.href = '/agentic';
+        }
+
+        function generateReport() {
+            fetch('/generate-report', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(window.result)
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'fraud_report.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            })
+            .catch(error => console.error('Error generating report:', error));
         }
     </script>
 </body>

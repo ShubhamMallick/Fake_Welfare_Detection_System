@@ -161,6 +161,25 @@
             localStorage.setItem('agentic_case_data', JSON.stringify(window.result));
             window.location.href = '/agentic';
         }
+
+        function generateReport() {
+            fetch('/generate-report', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(window.result)
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'fraud_report.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            })
+            .catch(error => console.error('Error generating report:', error));
+        }
     </script>
 </body>
 </html>

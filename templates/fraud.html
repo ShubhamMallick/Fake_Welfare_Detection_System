@@ -148,6 +148,7 @@
                         html += '<p style="color:green;">Normal network influence</p>';
                     }
                     html += '<button onclick="goToAgentic()">Proceed to Agentic Reasoning</button>';
+                    html += '<button onclick="generateReport()">Generate Report</button>';
                     document.getElementById('result').innerHTML = html;
                 }
             } catch (error) {
@@ -158,6 +159,25 @@
         function goToAgentic() {
             localStorage.setItem('agentic_case_data', JSON.stringify(window.result));
             window.location.href = '/agentic';
+        }
+
+        function generateReport() {
+            fetch('/generate-report', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(window.result)
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'fraud_report.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            })
+            .catch(error => console.error('Error generating report:', error));
         }
     </script>
 </body>
