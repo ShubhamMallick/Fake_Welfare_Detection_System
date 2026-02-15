@@ -11,12 +11,9 @@ CORS(app)  # Enable CORS for all routes
 # Load the trained Isolation Forest model
 model = joblib.load(os.path.join(os.path.dirname(__file__), "isolation_forest_model.pkl"))
 
-@app.route('/predict', methods=['POST'])
-def predict():
+def predict_anomaly(data):
     try:
-        data = request.get_json()
-
-        # Extract features from request
+        # Extract features from data
         annual_income = data.get('annual_income', 50000)
         registrations_per_aadhaar = data.get('registrations_per_aadhaar', 1)
         bank_shared_count = data.get('bank_shared_count', 1)
@@ -24,13 +21,13 @@ def predict():
 
         # Validate inputs (basic checks)
         if not isinstance(annual_income, (int, float)) or annual_income < 0:
-            return jsonify({'error': 'Invalid annual_income'}), 400
+            return {'error': 'Invalid annual_income'}
         if not isinstance(registrations_per_aadhaar, int) or not 1 <= registrations_per_aadhaar <= 10:
-            return jsonify({'error': 'Invalid registrations_per_aadhaar (1-10)'}), 400
+            return {'error': 'Invalid registrations_per_aadhaar (1-10)'}
         if not isinstance(bank_shared_count, int) or not 1 <= bank_shared_count <= 15:
-            return jsonify({'error': 'Invalid bank_shared_count (1-15)'}), 400
+            return {'error': 'Invalid bank_shared_count (1-15)'}
         if not isinstance(phone_shared_count, int) or not 1 <= phone_shared_count <= 15:
-            return jsonify({'error': 'Invalid phone_shared_count (1-15)'}), 400
+            return {'error': 'Invalid phone_shared_count (1-15)'}
 
         # Prepare model input
         model_input = pd.DataFrame([[
@@ -71,10 +68,16 @@ def predict():
                 ]
             }
 
-        return jsonify(result)
+        return result
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return {'error': str(e)}
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.get_json()
+    result = predict_anomaly(data)
+    return jsonify(result)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

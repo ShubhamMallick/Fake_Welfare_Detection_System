@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anomaly Detection - Prayatna Fraud Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        nav {
+            margin-bottom: 10px;
+        }
+        nav a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        main {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #007bff;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav><a href="/">Home</a> | <a href="/dashboard">Dashboard</a></nav>
+        <h1>Anomaly Detection</h1>
+        <p>Enter beneficiary features to detect anomalies in the data.</p>
+    </header>
+    <main>
+        <form id="anomalyForm">
+            <div class="form-group">
+                <label for="annual_income">Annual Income:</label>
+                <input type="number" id="annual_income" required>
+            </div>
+            <div class="form-group">
+                <label for="registrations_per_aadhaar">Registrations per Aadhaar:</label>
+                <input type="number" id="registrations_per_aadhaar" required>
+            </div>
+            <div class="form-group">
+                <label for="bank_shared_count">Bank Shared Count:</label>
+                <input type="number" id="bank_shared_count" required>
+            </div>
+            <div class="form-group">
+                <label for="phone_shared_count">Phone Shared Count:</label>
+                <input type="number" id="phone_shared_count" required>
+            </div>
+            <button type="button" onclick="predict()">Predict Anomaly</button>
+        </form>
+        <div id="result"></div>
+    </main>
+    <footer>
+        <p>&copy; 2026 Prayatna Fraud Detection System</p>
+    </footer>
+
+    <script>
+        window.onload = function() {
+            const features = JSON.parse(localStorage.getItem('extractedFeatures'));
+            if (features) {
+                document.getElementById('annual_income').value = features.annual_income || '';
+                document.getElementById('registrations_per_aadhaar').value = features.registrations_per_aadhaar || '';
+                document.getElementById('bank_shared_count').value = features.bank_shared_count || '';
+                document.getElementById('phone_shared_count').value = features.phone_shared_count || '';
+            }
+        }
+
+        async function predict() {
+            const data = {
+                annual_income: parseFloat(document.getElementById('annual_income').value),
+                registrations_per_aadhaar: parseInt(document.getElementById('registrations_per_aadhaar').value),
+                bank_shared_count: parseInt(document.getElementById('bank_shared_count').value),
+                phone_shared_count: parseInt(document.getElementById('phone_shared_count').value)
+            };
+            try {
+                const response = await fetch('/anomaly/predict', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                window.result = result;
+                if (result.error) {
+                    document.getElementById('result').innerHTML = '<p>Error: ' + result.error + '</p>';
+                } else {
+                    let html = '<h2>Prediction</h2><p>' + result.prediction + '</p>';
+                    html += '<h2>Anomaly Score</h2><p>' + result.anomaly_score + '</p>';
+                    html += '<h2>Details</h2><ul>';
+                    result.details.forEach(detail => {
+                        html += '<li>' + detail + '</li>';
+                    });
+                    html += '</ul>';
+                    html += '<button onclick="goToAgentic()">Proceed to Agentic Reasoning</button>';
+                    document.getElementById('result').innerHTML = html;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = '<p>Error: ' + error.message + '</p>';
+            }
+        }
+
+        function goToAgentic() {
+            localStorage.setItem('agentic_case_data', JSON.stringify(window.result));
+            window.location.href = '/agentic';
+        }
+    </script>
+</body>
+</html>

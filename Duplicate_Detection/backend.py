@@ -27,12 +27,9 @@ def load_pipeline():
 df = load_data()
 pipeline = load_pipeline()
 
-@app.route('/predict', methods=['POST'])
-def predict():
+def predict_duplicate(data):
     try:
-        data = request.get_json()
-
-        # Extract features from request
+        # Extract features from data
         aadhaar = data.get('aadhaar_like_id', '')
         name = data.get('name', '')
         household = data.get('household_id', '')
@@ -54,13 +51,13 @@ def predict():
 
         # Validate inputs (basic checks)
         if not aadhaar_str:
-            return jsonify({'error': 'Invalid aadhaar_like_id'}), 400
+            return {'error': 'Invalid aadhaar_like_id'}
         if not phone_str:
-            return jsonify({'error': 'Invalid phone_number'}), 400
+            return {'error': 'Invalid phone_number'}
         if not bank_str:
-            return jsonify({'error': 'Invalid bank_account'}), 400
+            return {'error': 'Invalid bank_account'}
         if not household_str:
-            return jsonify({'error': 'Invalid household_id'}), 400
+            return {'error': 'Invalid household_id'}
 
         # Prepare input DataFrame
         input_df = pd.DataFrame([{
@@ -102,10 +99,16 @@ def predict():
                 'confidence_genuine': round(normal_prob, 2)
             }
 
-        return jsonify(result)
+        return result
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return {'error': str(e)}
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.get_json()
+    result = predict_duplicate(data)
+    return jsonify(result)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)

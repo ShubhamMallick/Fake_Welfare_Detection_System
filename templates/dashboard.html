@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Detection Dashboard - Prayatna Fraud Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        nav {
+            margin-bottom: 10px;
+        }
+        nav a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #007bff;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .stat {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        .charts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .chart-container {
+            flex: 1 1 45%;
+            min-width: 300px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav><a href="/">Home</a> | <a href="/choice">Back to Choice</a></nav>
+        <h1>Fraud Detection Dashboard</h1>
+        <p>Overview of fraud statistics and visualizations.</p>
+    </header>
+    <main>
+        <div class="stats" id="stats"></div>
+        <div class="charts">
+            <div class="chart-container">
+                <canvas id="riskChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="fraudChart"></canvas>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2026 Prayatna Fraud Detection System</p>
+    </footer>
+
+    <script>
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/dashboard-data');
+                const data = await response.json();
+                console.log(data);
+                
+                // Display stats
+                const statsDiv = document.getElementById('stats');
+                statsDiv.innerHTML = `
+                    <div class="stat"><h3>Total Beneficiaries</h3><p>${data.total_beneficiaries}</p></div>
+                    <div class="stat"><h3>Fraud Rings</h3><p>${data.fraud_rings}</p></div>
+                    <div class="stat"><h3>Anomalies</h3><p>${data.anomaly_count}</p></div>
+                    <div class="stat"><h3>Duplicates</h3><p>${data.duplicate_count}</p></div>
+                `;
+                
+                // Risk Distribution Bar Chart
+                const ctxRisk = document.getElementById('riskChart').getContext('2d');
+                new Chart(ctxRisk, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                        datasets: [{
+                            label: 'Beneficiaries',
+                            data: [data.risk_distribution.low, data.risk_distribution.medium, data.risk_distribution.high],
+                            backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Risk Distribution'
+                            }
+                        }
+                    }
+                });
+                
+                // Fraud Types Pie Chart
+                const ctxFraud = document.getElementById('fraudChart').getContext('2d');
+                new Chart(ctxFraud, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Fraud Rings', 'Anomalies', 'Duplicates'],
+                        datasets: [{
+                            data: [data.fraud_rings, data.anomaly_count, data.duplicate_count],
+                            backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Fraud Types Distribution'
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                document.getElementById('stats').innerHTML = '<p>Error loading dashboard: ' + error.message + '</p>';
+            }
+        }
+        
+        loadDashboard();
+    </script>
+</body>
+</html>

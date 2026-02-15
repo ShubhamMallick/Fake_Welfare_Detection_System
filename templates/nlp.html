@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLP Feature Extraction - Prayatna Fraud Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #007bff;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="file"], button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav><a href="/">Home</a> | <a href="/dashboard">Dashboard</a></nav>
+        <h1>NLP Feature Extraction</h1>
+        <p>Upload a PDF document to extract features for fraud detection analysis.</p>
+    </header>
+    <main>
+        <form id="nlpForm">
+            <label for="pdfFile">Select PDF File:</label>
+            <input type="file" id="pdfFile" accept=".pdf">
+            <button type="button" onclick="extract()">Extract Features</button>
+        </form>
+        <div id="result"></div>
+    </main>
+    <footer>
+        <p>&copy; 2026 Prayatna Fraud Detection System</p>
+    </footer>
+
+    <script>
+        async function extract() {
+            const file = document.getElementById('pdfFile').files[0];
+            if (!file) {
+                alert('Please select a PDF file');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('pdf', file);
+            try {
+                const response = await fetch('/nlp-extractor/extract', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                // Parse features from data
+                const features = {};
+                if (data.regex_results) {
+                    if (data.regex_results['Aadhaar ID']) features.aadhaar_like_id = data.regex_results['Aadhaar ID'][0];
+                    if (data.regex_results['Phone Number']) features.phone_number = data.regex_results['Phone Number'][0];
+                    if (data.regex_results['Bank Account']) features.bank_account = data.regex_results['Bank Account'][0];
+                    if (data.regex_results['Beneficiary ID']) features.beneficiary_id = data.regex_results['Beneficiary ID'][0];
+                    if (data.regex_results['Household ID']) features.household_id = data.regex_results['Household ID'][0];
+                    if (data.regex_results['Annual Income']) {
+                        const incomeStr = data.regex_results['Annual Income'][0];
+                        const cleanIncome = incomeStr.replace(/[₹,Rs\.\s]/g, '');
+                        features.annual_income = parseFloat(cleanIncome) || 50000;
+                    } else {
+                        features.annual_income = 50000;
+                    }
+                }
+                features.registrations_per_aadhaar = 1;
+                features.bank_shared_count = 1;
+                features.phone_shared_count = 1;
+                features.district = 'District_1';
+                if (data.nlp_results && data.nlp_results['Name']) {
+                    features.name = data.nlp_results['Name'][0];
+                } else {
+                    features.name = '';
+                }
+                // Store features in localStorage
+                localStorage.setItem('extractedFeatures', JSON.stringify(features));
+                localStorage.setItem('nlpResult', JSON.stringify(data));
+                // Redirect to choice page
+                window.location.href = '/choice';
+            } catch (error) {
+                document.getElementById('result').innerHTML = '<p>Error: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

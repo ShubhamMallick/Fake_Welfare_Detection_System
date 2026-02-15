@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Network Analysis - Prayatna Fraud Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        nav {
+            margin-bottom: 10px;
+        }
+        nav a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        main {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #007bff;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav><a href="/">Home</a> | <a href="/dashboard">Dashboard</a></nav>
+        <h1>Fraud Network Analysis</h1>
+        <p>Enter beneficiary ID to analyze fraud networks and patterns.</p>
+    </header>
+    <main>
+        <form id="fraudForm">
+            <div class="form-group">
+                <label for="beneficiary_id">Beneficiary ID:</label>
+                <input type="text" id="beneficiary_id" required>
+            </div>
+            <button type="button" onclick="predict()">Analyze Fraud</button>
+        </form>
+        <div id="result"></div>
+    </main>
+    <footer>
+        <p>&copy; 2026 Prayatna Fraud Detection System</p>
+    </footer>
+
+    <script>
+        window.onload = function() {
+            const features = JSON.parse(localStorage.getItem('extractedFeatures'));
+            if (features) {
+                document.getElementById('beneficiary_id').value = features.beneficiary_id || '';
+            }
+        }
+
+        async function predict() {
+            const data = {
+                beneficiary_id: document.getElementById('beneficiary_id').value
+            };
+            try {
+                const response = await fetch('/fraud-network/predict', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                window.result = result;
+                if (result.error) {
+                    document.getElementById('result').innerHTML = '<p>Error: ' + result.error + '</p>';
+                } else {
+                    let html = '<h2>ML Prediction</h2>';
+                    if (result.ml_prediction.includes('Fraud')) {
+                        html += '<p style="color:red;">⚠️ ' + result.ml_prediction + ' (Risk: ' + result.fraud_probability + '%)</p>';
+                    } else {
+                        html += '<p style="color:green;">✅ ' + result.ml_prediction + ' (Confidence: ' + result.normal_probability + '%)</p>';
+                    }
+                    html += '<h2>Beneficiary Details</h2><ul>';
+                    for (const [key, value] of Object.entries(result.beneficiary_details)) {
+                        html += '<li><strong>' + key.replace('_', ' ').toUpperCase() + ':</strong> ' + value + '</li>';
+                    }
+                    html += '</ul>';
+                    html += '<h2>Fraud Ring Analysis</h2><p><strong>Connected Component Size:</strong> ' + result.connected_component_size + '</p>';
+                    if (result.fraud_ring_detected) {
+                        html += '<p style="color:red;">⚠️ This beneficiary belongs to a FRAUD RING</p>';
+                    } else {
+                        html += '<p style="color:green;">✅ No fraud-ring behavior detected</p>';
+                    }
+                    html += '<h2>Master Agent Detection</h2><p><strong>Degree Centrality:</strong> ' + result.degree_centrality + '</p>';
+                    if (result.master_agent_detected) {
+                        html += '<p style="color:red;">🚨 Possible MASTER AGENT detected</p>';
+                    } else {
+                        html += '<p style="color:green;">Normal network influence</p>';
+                    }
+                    html += '<button onclick="goToAgentic()">Proceed to Agentic Reasoning</button>';
+                    document.getElementById('result').innerHTML = html;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = '<p>Error: ' + error.message + '</p>';
+            }
+        }
+
+        function goToAgentic() {
+            localStorage.setItem('agentic_case_data', JSON.stringify(window.result));
+            window.location.href = '/agentic';
+        }
+    </script>
+</body>
+</html>

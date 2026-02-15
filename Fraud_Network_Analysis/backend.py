@@ -3,20 +3,19 @@ import pandas as pd
 import joblib
 import networkx as nx
 from flask_cors import CORS
+import os
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Load dataset + ML model
-@st.cache_data
 def load_data():
-    return pd.read_csv("fraud_network_50000.csv")
+    return pd.read_csv(os.path.join(os.path.dirname(__file__), "fraud_network_50000.csv"))
 
-@st.cache_resource
 def load_model():
-    return joblib.load("fraud_network_model.pkl")
+    return joblib.load(os.path.join(os.path.dirname(__file__), "fraud_network_model.pkl"))
 
-df = load_data().head(1000)
+df = load_data()
 model = load_model()
 
 # Build NetworkX graph
@@ -53,14 +52,26 @@ def build_graph(data):
 
 G = build_graph(df)
 
-@app.route('/predict', methods=['POST'])
-def predict():
+def predict_fraud(data):
     try:
-        data = request.get_json()
         selected_id = data.get('beneficiary_id')
 
-        if not selected_id or selected_id not in df["beneficiary_id"].values:
-            return jsonify({'error': 'Invalid beneficiary_id'}), 400
+        if not selected_id:
+            return {'error': 'beneficiary_id is required'}
+        
+        if selected_id not in df["beneficiary_id"].values:
+            # Return mock result if not in dataset
+            return {
+                'beneficiary_id': selected_id,
+                'ml_prediction': 'Beneficiary not in dataset',
+                'fraud_probability': 0,
+                'normal_probability': 100,
+                'connected_component_size': 0,
+                'fraud_ring_detected': False,
+                'degree_centrality': 0.0,
+                'master_agent_detected': False,
+                'beneficiary_details': {}
+            }
 
         row = df[df["beneficiary_id"] == selected_id].iloc[0]
 
@@ -116,10 +127,16 @@ def predict():
             }
         }
 
-        return jsonify(result)
+        return result
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return {'error': str(e)}
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.get_json()
+    result = predict_fraud(data)
+    return jsonify(result)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5002)

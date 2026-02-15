@@ -10,7 +10,6 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Load spaCy model
-@st.cache_resource  # But for Flask, load once
 def load_spacy_model():
     try:
         nlp = spacy.load("en_core_web_sm")
@@ -76,6 +75,29 @@ def spacy_extract(text):
     
     return results
 
+def extract_nlp(uploaded_file):
+    try:
+        # Extract text
+        text = extract_text_from_pdf(uploaded_file)
+        if not text:
+            return {'error': 'Could not extract text from the uploaded file'}
+
+        # Extract information
+        regex_results = regex_extract(text)
+        nlp_results = spacy_extract(text)
+
+        # Prepare response
+        result = {
+            'regex_results': regex_results,
+            'nlp_results': nlp_results,
+            'raw_text': text
+        }
+
+        return result
+
+    except Exception as e:
+        return {'error': str(e)}
+
 @app.route('/extract', methods=['POST'])
 def extract():
     try:
@@ -89,21 +111,7 @@ def extract():
         if not uploaded_file.filename.lower().endswith('.pdf'):
             return jsonify({'error': 'File must be a PDF'}), 400
 
-        # Extract text
-        text = extract_text_from_pdf(uploaded_file)
-        if not text:
-            return jsonify({'error': 'Could not extract text from the uploaded file'}), 400
-
-        # Extract information
-        regex_results = regex_extract(text)
-        nlp_results = spacy_extract(text)
-
-        # Prepare response
-        result = {
-            'regex_results': regex_results,
-            'nlp_results': nlp_results,
-            'raw_text': text
-        }
+        result = extract_nlp(uploaded_file)
 
         return jsonify(result)
 

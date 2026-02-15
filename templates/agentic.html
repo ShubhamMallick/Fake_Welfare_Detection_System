@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic Reasoning - Prayatna Fraud Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        nav {
+            margin-bottom: 10px;
+        }
+        nav a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #007bff;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav><a href="/">Home</a> | <a href="/dashboard">Dashboard</a></nav>
+        <h1>Agentic Reasoning</h1>
+        <p>Enter case data for AI-powered explanation and audit summary.</p>
+    </header>
+    <main>
+        <form id="agenticForm">
+            <div class="form-group">
+                <label for="case_data">Case Data (JSON):</label>
+                <textarea id="case_data" rows="10" cols="50" placeholder='{"annual_income": 50000, ...}' required></textarea>
+            </div>
+            <button type="button" onclick="analyze()">Analyze</button>
+        </form>
+        <div id="result"></div>
+    </main>
+    <footer>
+        <p>&copy; 2026 Prayatna Fraud Detection System</p>
+    </footer>
+
+    <script>
+        window.onload = function() {
+            const caseData = localStorage.getItem('agentic_case_data');
+            if (caseData) {
+                document.getElementById('case_data').value = JSON.stringify(JSON.parse(caseData), null, 2);
+            }
+        }
+
+        async function analyze() {
+            const caseDataText = document.getElementById('case_data').value;
+            let caseData;
+            try {
+                caseData = JSON.parse(caseDataText);
+            } catch (e) {
+                alert('Invalid JSON');
+                return;
+            }
+            const data = { case_data: caseData };
+            try {
+                const response = await fetch('/agentic-reasoning/analyze', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.error) {
+                    document.getElementById('result').innerHTML = '<p>Error: ' + result.error + '</p>';
+                } else {
+                    let html = '<h2>Explanation</h2><p>' + result.explanation + '</p>';
+                    html += '<h2>Audit Summary</h2><p>' + result.audit_summary + '</p>';
+                    document.getElementById('result').innerHTML = html;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = '<p>Error: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

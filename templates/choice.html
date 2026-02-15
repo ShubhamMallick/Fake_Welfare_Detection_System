@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Analysis - Prayatna Fraud Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        nav {
+            margin-bottom: 10px;
+        }
+        nav a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #007bff;
+        }
+        #features {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav><a href="/">Home</a> | <a href="/dashboard">Dashboard</a></nav>
+        <h1>Choose Analysis Type</h1>
+        <p>Select the type of fraud detection analysis you want to perform with the extracted features.</p>
+    </header>
+    <main>
+        <h2>Extracted Features</h2>
+        <div id="features"></div>
+        <button onclick="goToAnomaly()">Analyze Anomaly</button>
+        <button onclick="goToDuplicate()">Analyze Duplicate</button>
+        <button onclick="goToFraud()">Analyze Fraud</button>
+        <button onclick="goToPipeline()">Run Full Pipeline</button>
+        <button onclick="goToDashboard()">View Dashboard</button>
+    </main>
+    <footer>
+        <p>&copy; 2026 Prayatna Fraud Detection System</p>
+    </footer>
+
+    <script>
+        window.onload = function() {
+            const features = JSON.parse(localStorage.getItem('extractedFeatures'));
+            const featuresDiv = document.getElementById('features');
+            if (features) {
+                featuresDiv.innerHTML = '<pre>' + JSON.stringify(features, null, 2) + '</pre>';
+            } else {
+                featuresDiv.innerHTML = '<p>No features found. Please extract from NLP first.</p>';
+            }
+        }
+
+        function goToAnomaly() {
+            window.location.href = '/anomaly';
+        }
+
+        function goToDuplicate() {
+            window.location.href = '/duplicate';
+        }
+
+        function goToFraud() {
+            window.location.href = '/fraud';
+        }
+
+        function goToPipeline() {
+            window.location.href = '/pipeline-page';
+        }
+
+        function goToDashboard() {
+            window.location.href = '/dashboard';
+        }
+    </script>
+</body>
+</html>
