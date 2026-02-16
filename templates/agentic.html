@@ -181,7 +181,7 @@
             }
             const data = { case_data: caseData };
             try {
-                const response = await fetch('/agentic-reasoning/analyze', {
+                const response = await fetch('/admin-decision-page/agentic-reasoning/analyze', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(data)

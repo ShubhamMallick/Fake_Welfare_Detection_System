@@ -186,11 +186,41 @@ button:hover {
 </nav>
 
 <main>
-<label>Select PDF</label>
+
+<h1>Fraud Detection Pipeline</h1>
+
+<section class="intro">
+    <h2>Overview</h2>
+    <p>The Fraud Detection Pipeline is a comprehensive analytical tool designed to perform end-to-end fraud assessment on beneficiary data extracted from PDF documents. By integrating multiple AI-powered modules, it provides a holistic evaluation of potential fraudulent activities in welfare distribution systems.</p>
+
+    <h2>Process Flow</h2>
+    <ol>
+        <li><i class="fas fa-file-upload"></i> <strong>Document Upload:</strong> Upload a PDF containing beneficiary information for analysis.</li>
+        <li><i class="fas fa-brain"></i> <strong>Natural Language Processing (NLP):</strong> Extract and process key features from unstructured text data.</li>
+        <li><i class="fas fa-chart-line"></i> <strong>Anomaly Detection:</strong> Identify statistical outliers and irregular patterns in transaction data.</li>
+        <li><i class="fas fa-copy"></i> <strong>Duplicate Detection:</strong> Scan for identical or highly similar beneficiary records.</li>
+        <li><i class="fas fa-network-wired"></i> <strong>Fraud Network Analysis:</strong> Examine relational networks to uncover organized fraud schemes and influential entities.</li>
+    </ol>
+
+    <h2>Requirements & Tips</h2>
+    <ul>
+        <li><strong>Document Format:</strong> Ensure the PDF includes structured beneficiary data such as names, addresses, and transaction amounts for optimal analysis.</li>
+        <li><strong>Processing Time:</strong> Analysis duration varies based on document complexity and size; typically completes within seconds.</li>
+        <li><strong>Output:</strong> Results are presented in categorized sections with detailed feature extractions for transparent review.</li>
+    </ul>
+</section>
+
+<label for="pdfFile">Select PDF Document</label>
 <input type="file" id="pdfFile" accept=".pdf">
 <button onclick="runPipeline()">Run Pipeline</button>
+
 <div id="result"></div>
+
 </main>
+
+<footer>
+    2026 Prayatna Fraud Detection System
+</footer>
 
 <script>
 function formatValue(v){

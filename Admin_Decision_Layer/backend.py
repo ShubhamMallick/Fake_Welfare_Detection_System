@@ -58,6 +58,31 @@ def get_audit():
     data = load_decisions()
     return jsonify(data['audit'])
 
+@app.route('/agentic-reasoning/analyze', methods=['POST'])
+def agentic_analyze():
+    data = request.json
+    case_data = data.get('case_data', {})
+    
+    # Mock AI reasoning based on case data
+    ml_pred = case_data.get('ml_prediction', 'Unknown')
+    fraud_prob = case_data.get('fraud_probability', 0)
+    normal_prob = case_data.get('normal_probability', 100 - fraud_prob)
+    
+    explanation = f"The analysis indicates a prediction of '{ml_pred}' with a fraud probability of {fraud_prob}%. "
+    if ml_pred.lower() == 'fraud':
+        explanation += "This suggests potential fraudulent activity. Key factors include high anomaly scores and suspicious network connections."
+    else:
+        explanation += f"The case appears legitimate with a confidence level of {normal_prob}%. No immediate red flags detected."
+    
+    audit_summary = f"Audit Recommendation: {'Immediate investigation required' if fraud_prob > 50 else 'Monitor for changes'}. "
+    audit_summary += f"Case ID: {case_data.get('beneficiary_details', {}).get('beneficiary_id', 'N/A')}. "
+    audit_summary += "Document all findings and follow up within 7 days."
+    
+    return jsonify({
+        'explanation': explanation,
+        'audit_summary': audit_summary
+    })
+
 # Mock some cases for demo
 @app.route('/init-cases')
 def init_cases():
