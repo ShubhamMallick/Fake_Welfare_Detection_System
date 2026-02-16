@@ -5,35 +5,105 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fraud Detection Pipeline - Prayatna</title>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <style>
+/* ---------- GLOBAL ---------- */
 body {
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
-    padding: 20px;
-    background: linear-gradient(135deg, #ff9a56, #fb2d62);
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
     min-height: 100vh;
+
+    opacity: 0;
+    transform: translateY(40px);
+    animation: pageFade 1.2s ease forwards;
+}
+@keyframes pageFade {
+    to { opacity: 1; transform: translateY(0); }
 }
 
-header {
-    text-align: center;
-    color: white;
+/* ---------- NAVBAR ---------- */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+
+    opacity: 0;
+    transform: translateY(-60px);
+    animation: navbarDrop 1s ease forwards;
+}
+@keyframes navbarDrop {
+    to { opacity: 1; transform: translateY(0); }
 }
 
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 22px;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: bold;
+    color: #fb2d62;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.3s;
+}
+.logo:hover { transform: scale(1.05); }
+
+.nav-links { display: flex; gap: 25px; }
+
+.nav-item {
+    position: relative;
+    text-decoration: none;
+    font-weight: 600;
+    color: #333;
+    transition: 0.3s;
+}
+.nav-item::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 0%;
+    height: 3px;
+    background: linear-gradient(45deg,#ff9a56,#fb2d62);
+    transition: 0.3s;
+}
+.nav-item:hover { color: #fb2d62; }
+.nav-item:hover::after,
+.nav-item.active::after { width: 100%; }
+.nav-item.active { color: #fb2d62; }
+
+/* ---------- MAIN ---------- */
 main {
     max-width: 1100px;
-    margin: auto;
-    background: white;
+    margin: 40px auto;
+    background: rgba(255,255,255,0.95);
     padding: 25px;
     border-radius: 15px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
 
+    opacity: 0;
+    transform: scale(0.9);
+    animation: zoomIn 1s ease forwards;
+    animation-delay: .2s;
+}
+@keyframes zoomIn { to { opacity:1; transform: scale(1); } }
+
+/* ---------- INPUT + BUTTON ---------- */
 input, button {
     width: 100%;
     padding: 12px;
     margin-top: 10px;
     border-radius: 8px;
-    border: 1px solid #ccc;
     font-size: 15px;
 }
 
@@ -41,154 +111,141 @@ button {
     background: linear-gradient(45deg,#ff9a56,#fb2d62);
     color: white;
     border: none;
-    cursor: pointer;
     font-weight: bold;
+    cursor: pointer;
+    transition: .3s;
+}
+button:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 25px rgba(255,90,120,0.5);
 }
 
-button:hover { opacity: 0.9; }
-
+/* ---------- SECTIONS ---------- */
 .section {
     margin-top: 25px;
     padding: 20px;
     border-radius: 12px;
     background: #f7f9fc;
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    animation: fadeIn 1s ease-in;
+
+    opacity: 0;
+    transform: translateY(30px);
+    animation: sectionFade .8s ease forwards;
+}
+@keyframes sectionFade {
+    to { opacity:1; transform: translateY(0); }
 }
 
-.section h2 {
-    margin-top: 0;
-    color: #fb2d62;
-    animation: slideIn 0.8s ease-out;
+/* ---------- FEATURES GRID ---------- */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+    gap: 15px;
 }
 
-@keyframes slideIn {
-    from { transform: translateX(-30px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+.feature-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: .3s;
+}
+.feature-card:hover {
+    transform: translateY(-5px);
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-    animation: fadeIn 1.5s ease-in;
-}
-
-th, td {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    text-align: left;
-    transition: background 0.3s ease;
-}
-
-th { background: #ffe3ec; }
-
-td:hover {
-    background: #ffe3ec;
-}
-
+/* ---------- LOADING ---------- */
 .loading {
     text-align: center;
     font-weight: bold;
     color: #fb2d62;
     animation: pulse 1s infinite;
 }
-
 @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
+    0%,100% { opacity:1; }
+    50% { opacity:.4; }
 }
 
-.error {
-    color: red;
-    font-weight: bold;
-    animation: shake 0.5s;
-}
-
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-}
+.error { color: red; }
 </style>
 </head>
 
 <body>
 
-<header>
-    <h1>Fraud Detection Pipeline</h1>
-    <p>Upload a PDF → NLP → Anomaly → Duplicate → Fraud Network</p>
-</header>
+<nav class="navbar">
+<div class="nav-container">
+<div class="logo"><i class="fas fa-shield-alt"></i> Prayatna</div>
+<div class="nav-links">
+<a href="/" class="nav-item">Home</a>
+<a href="/dashboard" class="nav-item">Dashboard</a>
+<a href="/pipeline-page" class="nav-item active">Pipeline</a>
+<a href="/agentic" class="nav-item">Agentic AI</a>
+</div>
+</div>
+</nav>
 
 <main>
-
 <label>Select PDF</label>
 <input type="file" id="pdfFile" accept=".pdf">
 <button onclick="runPipeline()">Run Pipeline</button>
-
 <div id="result"></div>
-
 </main>
 
 <script>
-function renderTable(obj) {
-    if (!obj || typeof obj !== "object") return "<p>No data</p>";
-
-    let rows = Object.entries(obj).map(
-        ([key, value]) =>
-            `<tr><th>${key}</th><td>${typeof value === "object"
-                ? JSON.stringify(value)
-                : value}</td></tr>`
-    ).join("");
-
-    return `<table>${rows}</table>`;
+function formatValue(v){
+ if(v==null) return "—";
+ if(typeof v==="object") return JSON.stringify(v,null,1);
+ return v;
 }
 
-function renderSection(title, data) {
-    return `
-        <div class="section">
-            <h2>${title}</h2>
-            ${renderTable(data)}
-        </div>
-    `;
+function renderFeatures(features){
+ if(!features) return "<p>No data</p>";
+
+ let html=`<div class="features-grid">`;
+ for(const [k,v] of Object.entries(features)){
+  html+=`<div class="feature-card">
+           <h4>${k.replace(/_/g," ")}</h4>
+           <p>${formatValue(v)}</p>
+         </div>`;
+ }
+ html+="</div>";
+ return html;
 }
 
-async function runPipeline() {
-    const fileInput = document.getElementById("pdfFile");
-    const resultDiv = document.getElementById("result");
+function renderSection(title,data){
+ return `<div class="section">
+           <h2>${title}</h2>
+           ${renderFeatures(data)}
+         </div>`;
+}
 
-    if (!fileInput.files.length) {
-        alert("Please select a PDF file");
-        return;
-    }
+async function runPipeline(){
+ const file=document.getElementById("pdfFile").files[0];
+ const resultDiv=document.getElementById("result");
 
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
+ if(!file){ alert("Select a PDF"); return; }
 
-    resultDiv.innerHTML = `<p class="loading">Running fraud detection pipeline...</p>`;
+ const fd=new FormData();
+ fd.append("file",file);
 
-    try {
-        const response = await fetch("/pipeline", {
-            method: "POST",
-            body: formData
-        });
+ resultDiv.innerHTML=`<p class="loading">Running fraud detection pipeline...</p>`;
 
-        if (!response.ok) throw new Error("Server error " + response.status);
+ try{
+  const res=await fetch("/pipeline",{method:"POST",body:fd});
+  const data=await res.json();
 
-        const data = await response.json();
+  let html="";
+  html+=renderSection("📄 NLP Extraction",data.nlp_extraction);
+  html+=renderSection("📊 Anomaly Detection",data.anomaly_detection);
+  html+=renderSection("🔁 Duplicate Detection",data.duplicate_detection);
+  html+=renderSection("🕸 Fraud Network Analysis",data.fraud_network_analysis);
 
-        let html = "";
-        html += renderSection("📄 NLP Extraction", data.nlp_extraction);
-        html += renderSection("📊 Anomaly Detection", data.anomaly_detection);
-        html += renderSection("🔁 Duplicate Detection", data.duplicate_detection);
-        html += renderSection("🕸 Fraud Network Analysis", data.fraud_network_analysis);
+  resultDiv.innerHTML=html;
 
-        resultDiv.innerHTML = html;
-
-    } catch (err) {
-        resultDiv.innerHTML = `<p class="error">Error: ${err.message}</p>`;
-    }
+ }catch(err){
+  resultDiv.innerHTML=`<p class="error">${err.message}</p>`;
+ }
 }
 </script>
 

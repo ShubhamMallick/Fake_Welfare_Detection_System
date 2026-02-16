@@ -1,243 +1,388 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fraud Network Analysis - Prayatna Fraud Detection</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-            color: #333;
-            min-height: 100vh;
-            animation: fadeIn 1s ease-in;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            animation: slideDown 0.8s ease-out;
-        }
-        @keyframes slideDown {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        nav {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 10px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            animation: fadeIn 1.2s ease-in;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: bold;
-            margin: 0 15px;
-            transition: all 0.3s ease;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-        nav a:hover {
-            color: #ffd700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-            background: rgba(255, 215, 0, 0.1);
-        }
-        main {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-            animation: zoomIn 1s ease-out;
-        }
-        @keyframes zoomIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        h1 {
-            color: #333;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-        @keyframes glow {
-            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
-            to { text-shadow: 2px 2px 4px rgba(255,215,0,0.8); }
-        }
-        form {
-            margin-bottom: 20px;
-            animation: fadeInUp 1.5s ease-out;
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
-        }
-        input[type="text"]:focus {
-            border-color: #ffecd2;
-            box-shadow: 0 0 10px rgba(255, 236, 210, 0.3);
-        }
-        button {
-            background: linear-gradient(45deg, #ffecd2, #fcb69f);
-            color: #333;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255, 236, 210, 0.3);
-        }
-        button:hover {
-            background: linear-gradient(45deg, #fcb69f, #ffecd2);
-            box-shadow: 0 6px 20px rgba(255, 236, 210, 0.5);
-            transform: translateY(-2px);
-        }
-        #result {
-            margin-top: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            animation: fadeIn 2s ease-in;
-        }
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: #fff;
-            animation: fadeIn 2.5s ease-in;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Fraud Network Analysis - Prayatna</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+
+/* ---------- GLOBAL ---------- */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    color: #333;
+    min-height: 100vh;
+    animation: fadeIn 1s ease-in;
+}
+
+@keyframes fadeIn {
+    from {opacity:0; transform: translateY(20px);}
+    to {opacity:1; transform: translateY(0);}
+}
+
+/* ---------- NAVBAR ---------- */
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+
+    border-radius: 14px;
+    margin-bottom: 20px;
+
+    animation: slideDown 0.7s ease-out;
+}
+
+@keyframes slideDown {
+    from {opacity:0; transform: translateY(-40px);}
+    to {opacity:1; transform: translateY(0);}
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 22px;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: bold;
+    color: #fb2d62;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.3s;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+    text-shadow: 0 0 12px rgba(251,45,98,0.5);
+}
+
+.nav-links {
+    display: flex;
+    gap: 25px;
+}
+
+.nav-item {
+    position: relative;
+    text-decoration: none;
+    font-weight: 600;
+    color: #333;
+    padding: 6px 4px;
+    transition: 0.3s;
+}
+
+.nav-item::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 0%;
+    height: 3px;
+    background: linear-gradient(45deg, #ff9a56, #fb2d62);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.nav-item:hover {
+    color: #fb2d62;
+    transform: translateY(-2px);
+}
+
+.nav-item:hover::after,
+.nav-item.active::after {
+    width: 100%;
+}
+
+.nav-item.active {
+    color: #fb2d62;
+}
+
+/* ---------- MAIN CARD ---------- */
+
+main {
+    max-width: 1000px;
+    margin: auto;
+    background: rgba(255,255,255,0.95);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    animation: zoomIn 0.8s ease;
+}
+
+@keyframes zoomIn {
+    from {transform: scale(0.9); opacity:0;}
+    to {transform: scale(1); opacity:1;}
+}
+
+h1 {
+    text-align: center;
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+    from {text-shadow: 0 0 5px rgba(0,0,0,0.2);}
+    to {text-shadow: 0 0 15px rgba(255,154,86,0.8);}
+}
+
+/* ---------- FEATURES GRID ---------- */
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+    gap: 20px;
+}
+
+.feature-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+/* ---------- BUTTON ---------- */
+
+button {
+    background: linear-gradient(45deg, #ff9a56, #fb2d62);
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 10px 5px;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255,154,86,0.4);
+}
+
+/* ---------- RESULT ---------- */
+
+#result {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+/* ---------- FOOTER ---------- */
+
+footer {
+    text-align: center;
+    margin-top: 25px;
+    color: #555;
+}
+
+</style>
 </head>
+
 <body>
-    <header>
-        <nav><a href="/">Home</a> | <a href="/dashboard">Dashboard</a></nav>
-        <h1>Fraud Network Analysis</h1>
-        <p>Enter features to analyze fraud networks and patterns.</p>
-    </header>
-    <main>
-        <section>
-            <h2>About Fraud Network Analysis</h2>
-            <p>Fraud network analysis examines relationships and patterns between entities to detect organized fraud schemes. Enter the features to analyze fraud networks.</p>
-        </section>
-        <form>
-            <label for="features">Enter Features (JSON):</label>
-            <textarea id="features" placeholder='{"feature1": "value1", "feature2": "value2"}'></textarea>
-            <p>Enter the features to analyze fraud network patterns.</p>
-            <button onclick="predict()"><i class="fas fa-project-diagram"></i> Analyze Fraud</button>
-        </form>
-        <div id="result"></div>
-    </main>
-    <footer>
-        <p>&copy; 2026 Prayatna Fraud Detection System</p>
-    </footer>
 
-    <script>
-        window.onload = function() {
-            const features = JSON.parse(localStorage.getItem('extractedFeatures'));
-            if (features) {
-                document.getElementById('beneficiary_id').value = features.beneficiary_id || '';
-            }
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i> Prayatna
+        </div>
+
+        <div class="nav-links">
+            <a href="/" class="nav-item active">Home</a>
+            <a href="/dashboard" class="nav-item">Dashboard</a>
+            <a href="/agentic" class="nav-item">Agentic AI</a>
+        </div>
+    </div>
+</nav>
+
+<main>
+
+<h1>Fraud Network Analysis</h1>
+
+<h2>Extracted Features</h2>
+<div id="features"></div>
+
+<button onclick="predict()">
+    <i class="fas fa-project-diagram"></i> Analyze Fraud
+</button>
+
+<div id="result"></div>
+
+</main>
+
+<footer>
+© 2026 Prayatna Fraud Detection System
+</footer>
+
+<script>
+
+/* ---------- UTIL ---------- */
+
+function formatValue(value) {
+    if (value === null || value === undefined) return "—";
+    if (typeof value === "object") {
+        if (Array.isArray(value)) return value.join(", ");
+        return JSON.stringify(value, null, 1);
+    }
+    return value;
+}
+
+/* ---------- RENDER FEATURES ---------- */
+
+function renderFeatures(features) {
+    if (!features || Object.keys(features).length === 0) {
+        return "<p>No extracted features found. Run NLP extraction first.</p>";
+    }
+
+    let html = `<div class="features-grid">`;
+
+    for (const [key, value] of Object.entries(features)) {
+        html += `
+        <div class="feature-card">
+            <h4>${key.replace(/_/g," ")}</h4>
+            <p>${formatValue(value)}</p>
+        </div>`;
+    }
+
+    html += "</div>";
+    return html;
+}
+
+window.onload = () => {
+    try {
+        const stored = localStorage.getItem("extractedFeatures");
+        const features = stored ? JSON.parse(stored) : null;
+        document.getElementById("features").innerHTML = renderFeatures(features);
+    } catch {
+        document.getElementById("features").innerHTML = "<p>Error loading features.</p>";
+    }
+};
+
+/* ---------- PREDICT ---------- */
+
+async function predict() {
+
+    const stored = localStorage.getItem("extractedFeatures");
+    const features = stored ? JSON.parse(stored) : null;
+
+    if (!features) {
+        alert("Run NLP extraction first.");
+        return;
+    }
+
+    try {
+        const response = await fetch("/fraud-network/predict", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({features})
+        });
+
+        const result = await response.json();
+        window.result = result;
+
+        if (result.error) {
+            document.getElementById("result").innerHTML =
+                `<p style="color:red;">${result.error}</p>`;
+            return;
         }
 
-        async function predict() {
-            const data = {
-                beneficiary_id: document.getElementById('beneficiary_id').value
-            };
-            try {
-                const response = await fetch('/fraud-network/predict', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                window.result = result;
-                if (result.error) {
-                    document.getElementById('result').innerHTML = '<p>Error: ' + result.error + '</p>';
-                } else {
-                    let html = '<h2>ML Prediction</h2>';
-                    if (result.ml_prediction.includes('Fraud')) {
-                        html += '<p style="color:red;">⚠️ ' + result.ml_prediction + ' (Risk: ' + result.fraud_probability + '%)</p>';
-                    } else {
-                        html += '<p style="color:green;">✅ ' + result.ml_prediction + ' (Confidence: ' + result.normal_probability + '%)</p>';
-                    }
-                    html += '<h2>Beneficiary Details</h2><ul>';
-                    for (const [key, value] of Object.entries(result.beneficiary_details)) {
-                        html += '<li><strong>' + key.replace('_', ' ').toUpperCase() + ':</strong> ' + value + '</li>';
-                    }
-                    html += '</ul>';
-                    html += '<h2>Fraud Ring Analysis</h2><p><strong>Connected Component Size:</strong> ' + result.connected_component_size + '</p>';
-                    if (result.fraud_ring_detected) {
-                        html += '<p style="color:red;">⚠️ This beneficiary belongs to a FRAUD RING</p>';
-                    } else {
-                        html += '<p style="color:green;">✅ No fraud-ring behavior detected</p>';
-                    }
-                    html += '<h2>Master Agent Detection</h2><p><strong>Degree Centrality:</strong> ' + result.degree_centrality + '</p>';
-                    if (result.master_agent_detected) {
-                        html += '<p style="color:red;">🚨 Possible MASTER AGENT detected</p>';
-                    } else {
-                        html += '<p style="color:green;">Normal network influence</p>';
-                    }
-                    html += '<button onclick="goToAgentic()">Proceed to Agentic Reasoning</button>';
-                    html += '<button onclick="generateReport()">Generate Report</button>';
-                    document.getElementById('result').innerHTML = html;
-                }
-            } catch (error) {
-                document.getElementById('result').innerHTML = '<p>Error: ' + error.message + '</p>';
-            }
+        const ml = result.ml_prediction || "Unknown";
+        const fraudProb = result.fraud_probability ?? "—";
+        const normalProb = result.normal_probability ?? "—";
+        const beneficiary = result.beneficiary_details || {};
+        const ccSize = result.connected_component_size ?? "—";
+        const degree = result.degree_centrality ?? "—";
+
+        let html = "<h2>ML Prediction</h2>";
+
+        if (typeof ml === "string" && ml.includes("Fraud")) {
+            html += `<p style="color:red;">⚠️ ${ml} (Risk: ${fraudProb}%)</p>`;
+        } else {
+            html += `<p style="color:green;">✅ ${ml} (Confidence: ${normalProb}%)</p>`;
         }
 
-        function goToAgentic() {
-            localStorage.setItem('agentic_case_data', JSON.stringify(window.result));
-            window.location.href = '/agentic';
+        html += "<h2>Beneficiary Details</h2><ul>";
+        for (const [k,v] of Object.entries(beneficiary)) {
+            html += `<li><strong>${k.replace(/_/g," ").toUpperCase()}:</strong> ${v}</li>`;
         }
+        html += "</ul>";
 
-        function generateReport() {
-            fetch('/generate-report', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(window.result)
-            })
-            .then(response => response.blob())
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'fraud_report.pdf';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            })
-            .catch(error => console.error('Error generating report:', error));
-        }
-    </script>
+        html += `
+        <h2>Fraud Ring Analysis</h2>
+        <p><strong>Connected Component Size:</strong> ${ccSize}</p>
+        ${result.fraud_ring_detected
+            ? '<p style="color:red;">⚠️ FRAUD RING detected</p>'
+            : '<p style="color:green;">No fraud-ring behavior</p>'}
+        `;
+
+        html += `
+        <h2>Master Agent Detection</h2>
+        <p><strong>Degree Centrality:</strong> ${degree}</p>
+        ${result.master_agent_detected
+            ? '<p style="color:red;">🚨 Possible MASTER AGENT</p>'
+            : '<p style="color:green;">Normal influence</p>'}
+        `;
+
+        html += `
+        <button onclick="goToAgentic()">Agentic Reasoning</button>
+        <button onclick="generateReport()">Download Report</button>
+        `;
+
+        document.getElementById("result").innerHTML = html;
+
+    } catch (err) {
+        document.getElementById("result").innerHTML =
+            `<p style="color:red;">${err.message}</p>`;
+    }
+}
+
+/* ---------- NAV ---------- */
+
+function goToAgentic() {
+    localStorage.setItem("agentic_case_data", JSON.stringify(window.result));
+    window.location.href = "/agentic";
+}
+
+/* ---------- REPORT ---------- */
+
+function generateReport() {
+    fetch("/generate-report", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify(window.result)
+    })
+    .then(r=>r.blob())
+    .then(blob=>{
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "fraud_report.pdf";
+        a.click();
+    });
+}
+
+</script>
+
 </body>
 </html>
