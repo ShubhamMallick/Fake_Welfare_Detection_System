@@ -10,8 +10,23 @@ import uvicorn
 import importlib
 import re
 import asyncio
+import numpy as np
 
 templates = Jinja2Templates(directory="templates")
+
+def convert_to_serializable(obj):
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {key: convert_to_serializable(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_serializable(item) for item in obj]
+    else:
+        return obj
 
 # Import the Flask apps from the backends
 anomaly_mod = importlib.import_module("Anomaly_Detection.backend")
@@ -38,8 +53,8 @@ app.mount("/nlp-extractor", WSGIMiddleware(nlp_app))
 app.mount("/admin-decision", WSGIMiddleware(admin_decision_app))
 # app.mount("/agentic-reasoning", WSGIMiddleware(agentic_app))
 
-@app.post("/pipeline")
-async def pipeline(file: UploadFile = File(...)):
+@app.post("/pipeline-basic")
+async def pipeline_basic(file: UploadFile = File(...)):
     try:
         # Step 1: Extract features from PDF using NLP
         nlp_result = await asyncio.to_thread(nlp_mod.extract_nlp, file.file)
@@ -92,32 +107,66 @@ async def pipeline(file: UploadFile = File(...)):
         # Step 2-4: Run anomaly, duplicate, and fraud predictions in parallel
         anomaly_task = asyncio.to_thread(anomaly_mod.predict_anomaly, features)
         duplicate_task = asyncio.to_thread(duplicate_mod.predict_duplicate, features)
-        fraud_task = asyncio.to_thread(fraud_mod.predict_fraud, {'beneficiary_id': features['beneficiary_id']})
+        fraud_task = asyncio.to_thread(fraud_mod.predict_fraud, {'features': {'Beneficiary ID': features['beneficiary_id']}})
 
         anomaly_result, duplicate_result, fraud_result = await asyncio.gather(anomaly_task, duplicate_task, fraud_task)
 
-        if 'error' in anomaly_result:
+        # Normalize anomaly result (allow only successful dicts through)
+        if isinstance(anomaly_result, tuple):
+            content, status = anomaly_result
+            if status != 200:
+                return JSONResponse(status_code=status, content=content)
+            anomaly_result = content
+        elif isinstance(anomaly_result, dict) and 'error' in anomaly_result:
             return JSONResponse(status_code=400, content=anomaly_result)
-        if 'error' in duplicate_result:
+        
+        # Normalize duplicate result
+        if isinstance(duplicate_result, tuple):
+            content, status = duplicate_result
+            if status != 200:
+                return JSONResponse(status_code=status, content=content)
+            duplicate_result = content
+        elif isinstance(duplicate_result, dict) and 'error' in duplicate_result:
             return JSONResponse(status_code=400, content=duplicate_result)
-        if 'error' in fraud_result:
-            return JSONResponse(status_code=400, content=fraud_result)
+        
+        # Normalize fraud result
+        if isinstance(fraud_result, tuple):
+            content, status = fraud_result
+            # Special-case: beneficiary not in dataset should NOT break the pipeline
+            if isinstance(content, dict) and content.get('error') == 'Beneficiary not in dataset':
+                fraud_result = {
+                    'beneficiary_id': features['beneficiary_id'],
+                    'ml_prediction': 'Beneficiary Not In Network Dataset',
+                    'fraud_probability': 0.0,
+                    'normal_probability': 100.0,
+                    'connected_component_size': 0,
+                    'fraud_ring_detected': False,
+                    'degree_centrality': 0.0,
+                    'master_agent_detected': False,
+                    'beneficiary_details': {}
+                }
+            elif status != 200:
+                return JSONResponse(status_code=status, content=content)
+            else:
+                fraud_result = content
+        elif isinstance(fraud_result, dict) and 'error' in fraud_result:
+            # Same special-case handling when predict_fraud returns a plain dict
+            if fraud_result.get('error') == 'Beneficiary not in dataset':
+                fraud_result = {
+                    'beneficiary_id': features['beneficiary_id'],
+                    'ml_prediction': 'Beneficiary Not In Network Dataset',
+                    'fraud_probability': 0.0,
+                    'normal_probability': 100.0,
+                    'connected_component_size': 0,
+                    'fraud_ring_detected': False,
+                    'degree_centrality': 0.0,
+                    'master_agent_detected': False,
+                    'beneficiary_details': {}
+                }
+            else:
+                return JSONResponse(status_code=400, content=fraud_result)
 
-        case_data = {
-            'nlp_extraction': nlp_result,
-            'anomaly_detection': anomaly_result,
-            'duplicate_detection': duplicate_result,
-            'fraud_network_analysis': fraud_result,
-            'beneficiary_id': features['beneficiary_id']
-        }
-
-        # Step 6: Run agentic reasoning
-        from Admin_Decision_Layer.backend import agentic_analyze
-        agentic_result = await asyncio.to_thread(agentic_analyze, case_data)
-        if 'error' in agentic_result:
-            return JSONResponse(status_code=400, content=agentic_result)
-
-        # Compile final response
+        # Compile response without agentic
         result = {
             "nlp_extraction": nlp_result,
             "anomaly_detection": anomaly_result,
@@ -125,9 +174,12 @@ async def pipeline(file: UploadFile = File(...)):
             "fraud_network_analysis": fraud_result
         }
 
+        result = convert_to_serializable(result)
+
         return JSONResponse(content=result)
 
     except Exception as e:
+        print("Exception in pipeline_basic:", str(e))
         return JSONResponse(status_code=500, content={'error': str(e)})
 
 @app.get("/dashboard-data")

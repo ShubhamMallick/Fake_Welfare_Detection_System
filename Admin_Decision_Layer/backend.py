@@ -37,24 +37,13 @@ def save_decisions(data):
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=2)
 
-def final_risk_score(case_data):
-    """Calculate risk score based on suspicious patterns"""
-    risk_score = (
-        case_data.get('bank_shared_count', 0) * 0.4 +
-        case_data.get('phone_shared_count', 0) * 0.3 +
-        case_data.get('registrations_per_aadhaar', 0) * 0.2 +
-        case_data.get('agent_cluster_size', 0) * 0.1
-    )
-    
-    return {
-        'risk_score': min(risk_score, 10),
-        'risk_level': 'High' if risk_score > 7 else 'Medium' if risk_score > 4 else 'Low',
-        'factors': [
-            f"Bank shared count: {case_data.get('bank_shared_count', 0)}",
-            f"Phone shared count: {case_data.get('phone_shared_count', 0)}",
-            f"Registrations per Aadhaar: {case_data.get('registrations_per_aadhaar', 0)}"
-        ]
-    }
+def clean_json_response(text):
+    """Remove markdown code blocks from JSON response"""
+    if text.startswith('```json'):
+        text = text[7:]  # Remove ```json
+    if text.endswith('```'):
+        text = text[:-3]  # Remove ```
+    return text.strip()
 
 # LangChain prompts
 explain_prompt = PromptTemplate(
@@ -154,45 +143,86 @@ def get_audit():
     data = load_decisions()
     return jsonify(data['audit'])
 
+def analyze_agentic(data):
+    print("Agentic analyze called with data:", data)
+
+    try:
+        # Decide mode based on payload shape
+        if 'case_data' in data:
+            # Standalone mode (from agentic page)
+            nlp = "Not available (standalone mode)"
+            anomaly = "Not available (standalone mode)"
+            duplicate = "Not available (standalone mode)"
+            fraud = json.dumps(data['case_data'])
+        else:
+            # Pipeline mode (from pipeline endpoint)
+            nlp = json.dumps(data.get('nlp_extraction', {}))
+            anomaly = json.dumps(data.get('anomaly_detection', {}))
+            duplicate = json.dumps(data.get('duplicate_detection', {}))
+            fraud = json.dumps(data.get('fraud_network_analysis', {}))
+
+        # Generate explanation
+        explanation_prompt_formatted = explain_prompt.format(
+            nlp=nlp,
+            anomaly=anomaly,
+            duplicate=duplicate,
+            fraud=fraud,
+        )
+        explanation_raw = llm.invoke([
+            {"role": "user", "content": explanation_prompt_formatted}
+        ]).content
+        explanation_raw = clean_json_response(explanation_raw)
+
+        try:
+            explanation_data = json.loads(explanation_raw)
+            print("Parsed explanation data:", explanation_data)
+        except json.JSONDecodeError:
+            explanation_data = {'summary': explanation_raw, 'key_points': []}
+            print("Failed to parse explanation, using fallback:", explanation_data)
+
+        # Generate audit summary
+        audit_prompt_formatted = audit_prompt.format(
+            nlp=nlp,
+            anomaly=anomaly,
+            duplicate=duplicate,
+            fraud=fraud,
+            explanation=json.dumps(explanation_data),
+        )
+        audit_raw = llm.invoke([
+            {"role": "user", "content": audit_prompt_formatted}
+        ]).content
+        audit_raw = clean_json_response(audit_raw)
+
+        try:
+            audit_data = json.loads(audit_raw)
+            print("Parsed audit data:", audit_data)
+        except json.JSONDecodeError:
+            audit_data = {
+                'case_overview': audit_raw,
+                'key_fraud_indicators': [],
+                'evidence_summary': '',
+                'recommended_action': ''
+            }
+            print("Failed to parse audit, using fallback:", audit_data)
+
+        result = {
+            'explanation': explanation_data,
+            'audit_summary': audit_data
+        }
+        print("Returning data:", result)
+        return result
+
+    except Exception as e:
+        # Catch any LLM / prompt / network errors so the pipeline
+        # does not crash with a 500. Caller will turn this into 400.
+        error_msg = f"Agentic reasoning failed: {str(e)}"
+        print(error_msg)
+        return {'error': error_msg}
+
 @app.route('/agentic-reasoning/analyze', methods=['POST'])
 def agentic_analyze():
     data = request.json
-    
-    if 'case_data' in data:
-        # Standalone mode (from agentic page)
-        nlp = "Not available (standalone mode)"
-        anomaly = "Not available (standalone mode)"
-        duplicate = "Not available (standalone mode)"
-        fraud = json.dumps(data['case_data'])
-    else:
-        # Pipeline mode (from pipeline endpoint)
-        nlp = json.dumps(data.get('nlp_extraction', {}))
-        anomaly = json.dumps(data.get('anomaly_detection', {}))
-        duplicate = json.dumps(data.get('duplicate_detection', {}))
-        fraud = json.dumps(data.get('fraud_network_analysis', {}))
-    
-    # Generate explanation
-    explanation_prompt_formatted = explain_prompt.format(nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud)
-    explanation_raw = llm.invoke([{"role": "user", "content": explanation_prompt_formatted}]).content
-    
-    try:
-        explanation_data = json.loads(explanation_raw)
-    except json.JSONDecodeError:
-        explanation_data = {'summary': explanation_raw, 'key_points': []}
-    
-    # Generate audit summary
-    audit_prompt_formatted = audit_prompt.format(nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud, explanation=json.dumps(explanation_data))
-    audit_raw = llm.invoke([{"role": "user", "content": audit_prompt_formatted}]).content
-    
-    try:
-        audit_data = json.loads(audit_raw)
-    except json.JSONDecodeError:
-        audit_data = {'case_overview': audit_raw, 'key_fraud_indicators': [], 'evidence_summary': '', 'recommended_action': ''}
-    
-    return jsonify({
-        'explanation': explanation_data,
-        'audit_summary': audit_data
-    })
+    return jsonify(analyze_agentic(data))
 
 # Mock some cases for demo
 @app.route('/init-cases')

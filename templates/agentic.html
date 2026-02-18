@@ -126,6 +126,49 @@
             outline: none;
         }
 
+        .run-btn {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            display: block;
+            margin: 20px auto;
+        }
+
+        .run-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        #data-sections {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .data-btn {
+            padding: 10px 15px;
+            background: #4facfe;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .data-btn:hover {
+            background: #00f2fe;
+        }
+
+        .data-btn.active {
+            background: #00f2fe;
+        }
+
         button {
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
@@ -240,6 +283,14 @@
         </header>
 
         <main>
+            <div id="data-sections">
+                <button onclick="showRawData()" class="data-btn active">Raw Data</button>
+                <button onclick="showExtractedData()" class="data-btn">Extracted Data</button>
+                <button onclick="showAnomalyData()" class="data-btn">Anomaly Data</button>
+                <button onclick="showDuplicateData()" class="data-btn">Duplicate Data</button>
+                <button onclick="showFraudData()" class="data-btn">Fraud Data</button>
+            </div>
+
             <div id="preview" class="section"></div>
 
             <div id="result" class="section"></div>
@@ -279,38 +330,75 @@
             return html;
         }
 
+        let currentData = null;
+
         window.onload = () => {
             let caseDataText = localStorage.getItem("agentic_case_data");
 
             if (!caseDataText) {
-                caseDataText = JSON.stringify({
-                    beneficiary_id: "B000000",
-                    ml_prediction: "Fraud Ring Suspected",
-                    fraud_probability: 85,
-                    normal_probability: 15,
-                    connected_component_size: 10,
-                    fraud_ring_detected: true,
-                    degree_centrality: 0.25,
-                    master_agent_detected: false,
-                    beneficiary_details: {
-                        aadhaar_like_id: "4587 9214 6632",
-                        phone_number: "9876543210",
-                        bank_account: "123456789012",
-                        agent_id: "AG1234",
-                        district: "Bhopal"
-                    }
-                }, null, 2);
+                caseDataText = '{}';
             }
 
             window.caseDataText = caseDataText;
 
             try {
                 const data = JSON.parse(caseDataText);
-                document.getElementById('preview').innerHTML = '<h2>Data Preview</h2>' + renderFeatures(data);
+                currentData = data;
+                showRawData();
             } catch {
                 document.getElementById('preview').innerHTML = '';
             }
         };
+
+        function showRawData() {
+            setActive('Raw Data');
+            document.getElementById('preview').innerHTML = '<h2>Raw Data</h2>' + renderFeatures(currentData);
+        }
+
+        function showExtractedData() {
+            setActive('Extracted Data');
+            const extracted = currentData.beneficiary_details || {};
+            document.getElementById('preview').innerHTML = '<h2>Extracted Data</h2>' + renderFeatures(extracted);
+        }
+
+        function showAnomalyData() {
+            setActive('Anomaly Data');
+            const anomaly = {
+                anomaly_score: currentData.anomaly_score || 'N/A',
+                ml_prediction: currentData.ml_prediction || 'N/A'
+            };
+            document.getElementById('preview').innerHTML = '<h2>Anomaly Data</h2>' + renderFeatures(anomaly);
+        }
+
+        function showDuplicateData() {
+            setActive('Duplicate Data');
+            const duplicate = {
+                duplicate_risk: currentData.duplicate_risk || 'N/A'
+            };
+            document.getElementById('preview').innerHTML = '<h2>Duplicate Data</h2>' + renderFeatures(duplicate);
+        }
+
+        function showFraudData() {
+            setActive('Fraud Data');
+            const fraud = {
+                fraud_probability: currentData.fraud_probability || 'N/A',
+                normal_probability: currentData.normal_probability || 'N/A',
+                connected_component_size: currentData.connected_component_size || 'N/A',
+                fraud_ring_detected: currentData.fraud_ring_detected || 'N/A',
+                degree_centrality: currentData.degree_centrality || 'N/A',
+                master_agent_detected: currentData.master_agent_detected || 'N/A'
+            };
+            document.getElementById('preview').innerHTML = '<h2>Fraud Data</h2>' + renderFeatures(fraud);
+        }
+
+        function setActive(btnText) {
+            document.querySelectorAll('.data-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent === btnText) {
+                    btn.classList.add('active');
+                }
+            });
+        }
 
         async function analyze() {
             const caseDataText = window.caseDataText;
@@ -363,16 +451,16 @@
             if (data.explanation) {
                 html += '<div class="card"><h3>AI Explanation</h3>';
                 if (typeof data.explanation === 'object') {
-                    html += '<p><strong>Summary:</strong> ' + (data.explanation.summary || '') + '</p>';
+                    html += '<p><strong>Summary:</strong> ' + (String(data.explanation.summary) || '') + '</p>';
                     if (data.explanation.key_points && data.explanation.key_points.length > 0) {
                         html += '<ul>';
                         data.explanation.key_points.forEach(point => {
-                            html += '<li>' + point + '</li>';
+                            html += '<li>' + String(point) + '</li>';
                         });
                         html += '</ul>';
                     }
                 } else {
-                    html += '<p>' + data.explanation + '</p>';
+                    html += '<p>' + String(data.explanation) + '</p>';
                 }
                 html += '</div>';
             }
@@ -381,23 +469,23 @@
                 html += '<div class="card"><h3>Audit Summary</h3>';
                 if (typeof data.audit_summary === 'object') {
                     if (data.audit_summary.case_overview) {
-                        html += '<p><strong>Case Overview:</strong> ' + data.audit_summary.case_overview + '</p>';
+                        html += '<p><strong>Case Overview:</strong> ' + String(data.audit_summary.case_overview) + '</p>';
                     }
                     if (data.audit_summary.key_fraud_indicators && data.audit_summary.key_fraud_indicators.length > 0) {
                         html += '<p><strong>Key Fraud Indicators:</strong></p><ul>';
                         data.audit_summary.key_fraud_indicators.forEach(indicator => {
-                            html += '<li>' + indicator + '</li>';
+                            html += '<li>' + String(indicator) + '</li>';
                         });
                         html += '</ul>';
                     }
                     if (data.audit_summary.evidence_summary) {
-                        html += '<p><strong>Evidence Summary:</strong> ' + data.audit_summary.evidence_summary + '</p>';
+                        html += '<p><strong>Evidence Summary:</strong> ' + String(data.audit_summary.evidence_summary) + '</p>';
                     }
                     if (data.audit_summary.recommended_action) {
-                        html += '<p><strong>Recommended Action:</strong> ' + data.audit_summary.recommended_action + '</p>';
+                        html += '<p><strong>Recommended Action:</strong> ' + String(data.audit_summary.recommended_action) + '</p>';
                     }
                 } else {
-                    html += '<p>' + data.audit_summary + '</p>';
+                    html += '<p>' + String(data.audit_summary) + '</p>';
                 }
                 html += '</div>';
             }

@@ -12,15 +12,9 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
-    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
-
-    opacity: 0;
-    transform: translateY(40px);
-    animation: pageFade 1.2s ease forwards;
-}
-@keyframes pageFade {
-    to { opacity: 1; transform: translateY(0); }
+    color: #333;
 }
 
 /* ---------- NAVBAR ---------- */
@@ -28,72 +22,49 @@ body {
     position: sticky;
     top: 0;
     z-index: 1000;
-    background: rgba(255,255,255,0.75);
+    background: rgba(255,255,255,0.9);
     backdrop-filter: blur(14px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-
-    opacity: 0;
-    transform: translateY(-60px);
-    animation: navbarDrop 1s ease forwards;
-}
-@keyframes navbarDrop {
-    to { opacity: 1; transform: translateY(0); }
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
 .nav-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 22px;
+    padding: 16px 24px;
 }
 
 .logo {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: bold;
-    color: #fb2d62;
+    color: #667eea;
+}
+
+.nav-links {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: 0.3s;
+    gap: 20px;
 }
-.logo:hover { transform: scale(1.05); }
 
-.nav-links { display: flex; gap: 25px; }
-
-.nav-item {
-    position: relative;
+.nav-links a {
     text-decoration: none;
-    font-weight: 600;
     color: #333;
-    transition: 0.3s;
+    font-weight: 500;
+    transition: color 0.3s;
 }
-.nav-item::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -4px;
-    width: 0%;
-    height: 3px;
-    background: linear-gradient(45deg,#ff9a56,#fb2d62);
-    transition: 0.3s;
-}
-.nav-item:hover { color: #fb2d62; }
-.nav-item:hover::after,
-.nav-item.active::after { width: 100%; }
-.nav-item.active { color: #fb2d62; }
 
-/* ---------- MAIN ---------- */
+.nav-links a:hover {
+    color: #667eea;
+}
+
+/* ---------- MAIN CONTENT ---------- */
 main {
-    max-width: 1100px;
-    margin: 40px auto;
-    background: rgba(255,255,255,0.95);
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
 
-    opacity: 0;
-    transform: scale(0.9);
-    animation: zoomIn 1s ease forwards;
+.section {
+    background: rgba(255,255,255,0.95);
     animation-delay: .2s;
 }
 @keyframes zoomIn { to { opacity:1; transform: scale(1); } }
@@ -212,7 +183,7 @@ button:hover {
 
 <label for="pdfFile">Select PDF Document</label>
 <input type="file" id="pdfFile" accept=".pdf">
-<button onclick="runPipeline()">Run Pipeline</button>
+<button onclick="runBasicPipeline()">Run Basic Pipeline</button>
 
 <div id="result"></div>
 
@@ -244,22 +215,72 @@ function renderFeatures(features){
 }
 
 function renderSection(title,data){
- if(title === "🤖 Agentic Reasoning" && data && data.explanation && data.audit_summary){
+ if(title === "🤖 Agentic Reasoning" && data && typeof data === 'object'){
+  let html=`<div class="section">
+          <h2><i class="fas fa-brain"></i> ${title}</h2>`;
+
+  if(data.explanation){
+   html += '<h3>AI Explanation</h3>';
+   if(typeof data.explanation === 'object'){
+    html += '<p><strong>Summary:</strong> ' + String(data.explanation.summary || '') + '</p>';
+    if(data.explanation.key_points && data.explanation.key_points.length > 0){
+     html += '<ul>';
+     data.explanation.key_points.forEach(point => {
+      html += '<li>' + String(point) + '</li>';
+     });
+     html += '</ul>';
+    }
+   } else {
+    html += '<p>' + String(data.explanation) + '</p>';
+   }
+  }
+
+  if(data.audit_summary){
+   html += '<h3>Audit Summary</h3>';
+   if(typeof data.audit_summary === 'object'){
+    if(data.audit_summary.case_overview){
+     html += '<p><strong>Case Overview:</strong> ' + String(data.audit_summary.case_overview) + '</p>';
+    }
+    if(data.audit_summary.key_fraud_indicators && data.audit_summary.key_fraud_indicators.length > 0){
+     html += '<p><strong>Key Fraud Indicators:</strong></p><ul>';
+     data.audit_summary.key_fraud_indicators.forEach(indicator => {
+      html += '<li>' + String(indicator) + '</li>';
+     });
+     html += '</ul>';
+    }
+    if(data.audit_summary.evidence_summary){
+     html += '<p><strong>Evidence Summary:</strong> ' + String(data.audit_summary.evidence_summary) + '</p>';
+    }
+    if(data.audit_summary.recommended_action){
+     html += '<p><strong>Recommended Action:</strong> ' + String(data.audit_summary.recommended_action) + '</p>';
+    }
+   } else {
+    html += '<p>' + String(data.audit_summary) + '</p>';
+   }
+  }
+
+  html += '</div>';
+  return html;
+ } else if(title.includes('NLP')) {
   return `<div class="section">
-           <h2>${title}</h2>
-           <h3>AI Explanation</h3>
-           <p>${data.explanation.replace(/\n/g,"<br>")}</p>
-           <h3>Audit Summary</h3>
-           <p>${data.audit_summary.replace(/\n/g,"<br>")}</p>
-         </div>`;
+          <h2><i class="fas fa-file-alt"></i> ${title}</h2>
+          <div class="nlp-horizontal">
+            ${Object.entries(data).map(([k,v]) => `<span><strong>${k.replace(/_/g," ")}:</strong> ${formatValue(v)}</span>`).join(' | ')}
+          </div>
+        </div>`;
+ } else {
+  let icon = 'file-alt';
+  if(title.includes('Anomaly')) icon = 'chart-line';
+  else if(title.includes('Duplicate')) icon = 'copy';
+  else if(title.includes('Fraud')) icon = 'network-wired';
+  return `<div class="section">
+          <h2><i class="fas fa-${icon}"></i> ${title}</h2>
+          ${renderFeatures(data)}
+        </div>`;
  }
- return `<div class="section">
-           <h2>${title}</h2>
-           ${renderFeatures(data)}
-         </div>`;
 }
 
-async function runPipeline(){
+async function runBasicPipeline(){
  const file=document.getElementById("pdfFile").files[0];
  const resultDiv=document.getElementById("result");
 
@@ -268,10 +289,10 @@ async function runPipeline(){
  const fd=new FormData();
  fd.append("file",file);
 
- resultDiv.innerHTML=`<p class="loading">Running fraud detection pipeline...</p>`;
+ resultDiv.innerHTML=`<p class="loading">Running basic fraud detection pipeline...</p>`;
 
  try{
-  const res=await fetch("/pipeline",{method:"POST",body:fd});
+  const res=await fetch("/pipeline-basic",{method:"POST",body:fd});
   const data=await res.json();
 
   let html="";
@@ -279,12 +300,35 @@ async function runPipeline(){
   html+=renderSection("📊 Anomaly Detection",data.anomaly_detection);
   html+=renderSection("🔁 Duplicate Detection",data.duplicate_detection);
   html+=renderSection("🕸 Fraud Network Analysis",data.fraud_network_analysis);
-  html+=renderSection("🤖 Agentic Reasoning",data.agentic_reasoning);
+  html+=`<button onclick='runAgentic(${JSON.stringify(data).replace(/'/g, "\\'")})'>Run Agentic Reasoning</button>`;
 
   resultDiv.innerHTML=html;
 
  }catch(err){
   resultDiv.innerHTML=`<p class="error">${err.message}</p>`;
+ }
+}
+
+async function runAgentic(basicData){
+ const resultDiv=document.getElementById("result");
+
+ // Append loading for agentic
+ resultDiv.innerHTML += `<p class="loading">Running agentic reasoning...</p>`;
+
+ try{
+  const res=await fetch("/admin-decision/agentic-reasoning/analyze",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify(basicData)
+  });
+  const data=await res.json();
+
+  // Remove loading and add agentic section
+  resultDiv.innerHTML = resultDiv.innerHTML.replace(/<p class="loading">Running agentic reasoning\.\.\.<\/p>$/, '');
+  resultDiv.innerHTML += renderSection("🤖 Agentic Reasoning",data);
+
+ }catch(err){
+  resultDiv.innerHTML += `<p class="error">${err.message}</p>`;
  }
 }
 </script>
