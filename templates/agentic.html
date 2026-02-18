@@ -5,199 +5,406 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agentic Reasoning - Prayatna Fraud Detection</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', sans-serif;
             margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #a8c0ff 0%, #3f2b96 100%);
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #333;
             min-height: 100vh;
-            animation: fadeIn 1s ease-in;
+            overflow-x: hidden;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
+
         header {
             text-align: center;
-            margin-bottom: 20px;
-            animation: slideDown 0.8s ease-out;
+            margin-bottom: 40px;
+            animation: slideDown 1s ease-out;
         }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: white;
+            margin: 0;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.9);
+            margin: 10px 0 0;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            animation: fadeIn 1.5s ease-in;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        nav a:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .section {
+            background: rgba(255,255,255,0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 800px;
+            animation: zoomIn 1s ease-out;
+            transition: transform 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+        }
+
+        .section h2 {
+            margin-top: 0;
+            color: #667eea;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+            resize: vertical;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            min-height: 150px;
+        }
+
+        textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+            outline: none;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            align-self: center;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(-1px);
+        }
+
+        #result {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #667eea;
+            font-size: 1.3rem;
+        }
+
+        .card p {
+            line-height: 1.6;
+            color: #555;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: white;
+            animation: fadeIn 2s ease-in;
+        }
+
         @keyframes slideDown {
             from { transform: translateY(-50px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-        nav {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 10px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            animation: fadeIn 1.2s ease-in;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: bold;
-            margin: 0 15px;
-            transition: all 0.3s ease;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-        nav a:hover {
-            color: #ffd700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-            background: rgba(255, 215, 0, 0.1);
-        }
-        main {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-            animation: zoomIn 1s ease-out;
-        }
+
         @keyframes zoomIn {
             from { transform: scale(0.9); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
-        h1 {
-            color: #333;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-        @keyframes glow {
-            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
-            to { text-shadow: 2px 2px 4px rgba(255,215,0,0.8); }
-        }
-        form {
-            margin-bottom: 20px;
-            animation: fadeInUp 1.5s ease-out;
-        }
+
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        textarea {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            resize: vertical;
-            transition: border-color 0.3s ease;
-        }
-        textarea:focus {
-            border-color: #a8c0ff;
-            box-shadow: 0 0 10px rgba(168, 192, 255, 0.3);
-        }
-        button {
-            background: linear-gradient(45deg, #a8c0ff, #3f2b96);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(168, 192, 255, 0.3);
-        }
-        button:hover {
-            background: linear-gradient(45deg, #3f2b96, #a8c0ff);
-            box-shadow: 0 6px 20px rgba(168, 192, 255, 0.5);
-            transform: translateY(-2px);
-        }
-        #result {
-            margin-top: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            animation: fadeIn 2s ease-in;
-        }
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: #fff;
-            animation: fadeIn 2.5s ease-in;
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            nav {
+                flex-direction: column;
+                gap: 10px;
+            }
         }
     </style>
 </head>
+
 <body>
-    <header>
-        <nav><a href="/">Home</a> | <a href="/dashboard">Dashboard</a></nav>
-        <h1>Agentic Reasoning</h1>
-        <p>Enter case data for AI-powered explanation and audit summary.</p>
-    </header>
-    <main>
-        <section>
-            <h2>About Agentic Reasoning</h2>
-            <p>Agentic reasoning uses AI to provide detailed explanations, audit summaries, and insights for fraud detection cases. Enter the case data for AI analysis.</p>
-            <p><strong>Note:</strong> Agentic reasoning provides AI-powered insights and explanations for suspicious cases.</p>
-        </section>
-        <form>
-            <label for="features">Enter Features (JSON):</label>
-            <textarea id="features" placeholder='{"feature1": "value1", "feature2": "value2"}'></textarea>
-            <p>Enter the features for agentic reasoning analysis.</p>
-            <button onclick="predict()"><i class="fas fa-brain"></i> Agentic Reasoning</button>
-        </form>
-        <div id="result"></div>
-    </main>
-    <footer>
-        <p>&copy; 2026 Prayatna Fraud Detection System</p>
-    </footer>
+    <div class="container">
+        <header>
+            <nav>
+                <a href="/">Home</a>
+                <a href="/dashboard">Dashboard</a>
+            </nav>
+            <h1><i class="fas fa-brain"></i> Agentic Reasoning</h1>
+            <p>AI-powered fraud explanation and audit summary</p>
+        </header>
+
+        <main>
+            <div id="preview" class="section"></div>
+
+            <div id="result" class="section"></div>
+
+            <button onclick="analyze()" class="run-btn"><i class="fas fa-search"></i> Run Analysis</button>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 Prayatna Fraud Detection System</p>
+        </footer>
+    </div>
 
     <script>
-        window.onload = function() {
-            const caseData = localStorage.getItem('agentic_case_data');
-            if (caseData) {
-                document.getElementById('case_data').value = JSON.stringify(JSON.parse(caseData), null, 2);
+        function formatValue(value) {
+            if (value === null || value === undefined) return "—";
+            if (Array.isArray(value)) return value.join(", ");
+            return value;
+        }
+
+        function renderFeatures(features) {
+            if (!features || Object.keys(features).length === 0) {
+                return `<div>No data to preview.</div>`;
+            }
+
+            let html = `<div class="features-grid">`;
+
+            for (const [key, value] of Object.entries(features)) {
+                html += `
+                    <div class="feature-card">
+                        <h4>${key.replace(/_/g," ")}</h4>
+                        ${typeof value === "object" && value !== null ? renderFeatures(value) : `<p>${formatValue(value)}</p>`}
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+            return html;
+        }
+
+        window.onload = () => {
+            let caseDataText = localStorage.getItem("agentic_case_data");
+
+            if (!caseDataText) {
+                caseDataText = JSON.stringify({
+                    beneficiary_id: "B000000",
+                    ml_prediction: "Fraud Ring Suspected",
+                    fraud_probability: 85,
+                    normal_probability: 15,
+                    connected_component_size: 10,
+                    fraud_ring_detected: true,
+                    degree_centrality: 0.25,
+                    master_agent_detected: false,
+                    beneficiary_details: {
+                        aadhaar_like_id: "4587 9214 6632",
+                        phone_number: "9876543210",
+                        bank_account: "123456789012",
+                        agent_id: "AG1234",
+                        district: "Bhopal"
+                    }
+                }, null, 2);
+            }
+
+            window.caseDataText = caseDataText;
+
+            try {
+                const data = JSON.parse(caseDataText);
+                document.getElementById('preview').innerHTML = '<h2>Data Preview</h2>' + renderFeatures(data);
+            } catch {
+                document.getElementById('preview').innerHTML = '';
+            }
+        };
+
+        async function analyze() {
+            const caseDataText = window.caseDataText;
+            let caseData;
+
+            try {
+                caseData = JSON.parse(caseDataText);
+            } catch {
+                alert("Invalid JSON format");
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin-decision/agentic-reasoning/analyze', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ case_data: caseData })
+                });
+
+                let result;
+                if (response.ok) {
+                    try {
+                        result = await response.json();
+                    } catch {
+                        result = { error: 'Invalid JSON response from server' };
+                    }
+                } else {
+                    const text = await response.text();
+                    result = { error: `HTTP ${response.status}: ${text}` };
+                }
+
+                if (result.error) {
+                    showError(result.error);
+                } else {
+                    showStructuredResult(result);
+                }
+
+            } catch (err) {
+                showError(err.message);
             }
         }
 
-        async function analyze() {
-            const caseDataText = document.getElementById('case_data').value;
-            let caseData;
-            try {
-                caseData = JSON.parse(caseDataText);
-            } catch (e) {
-                alert('Invalid JSON');
-                return;
-            }
-            const data = { case_data: caseData };
-            try {
-                const response = await fetch('/admin-decision-page/agentic-reasoning/analyze', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                if (result.error) {
-                    document.getElementById('result').innerHTML = '<p>Error: ' + result.error + '</p>';
+        function showError(msg) {
+            document.getElementById('result').innerHTML = `<p style="color:red"><strong>Error:</strong> ${msg}</p>`;
+        }
+
+        function showStructuredResult(data) {
+            let html = '';
+
+            if (data.explanation) {
+                html += '<div class="card"><h3>AI Explanation</h3>';
+                if (typeof data.explanation === 'object') {
+                    html += '<p><strong>Summary:</strong> ' + (data.explanation.summary || '') + '</p>';
+                    if (data.explanation.key_points && data.explanation.key_points.length > 0) {
+                        html += '<ul>';
+                        data.explanation.key_points.forEach(point => {
+                            html += '<li>' + point + '</li>';
+                        });
+                        html += '</ul>';
+                    }
                 } else {
-                    let html = '<h2>Explanation</h2><p>' + result.explanation + '</p>';
-                    html += '<h2>Audit Summary</h2><p>' + result.audit_summary + '</p>';
-                    document.getElementById('result').innerHTML = html;
+                    html += '<p>' + data.explanation + '</p>';
                 }
-            } catch (error) {
-                document.getElementById('result').innerHTML = '<p>Error: ' + error.message + '</p>';
+                html += '</div>';
             }
+
+            if (data.audit_summary) {
+                html += '<div class="card"><h3>Audit Summary</h3>';
+                if (typeof data.audit_summary === 'object') {
+                    if (data.audit_summary.case_overview) {
+                        html += '<p><strong>Case Overview:</strong> ' + data.audit_summary.case_overview + '</p>';
+                    }
+                    if (data.audit_summary.key_fraud_indicators && data.audit_summary.key_fraud_indicators.length > 0) {
+                        html += '<p><strong>Key Fraud Indicators:</strong></p><ul>';
+                        data.audit_summary.key_fraud_indicators.forEach(indicator => {
+                            html += '<li>' + indicator + '</li>';
+                        });
+                        html += '</ul>';
+                    }
+                    if (data.audit_summary.evidence_summary) {
+                        html += '<p><strong>Evidence Summary:</strong> ' + data.audit_summary.evidence_summary + '</p>';
+                    }
+                    if (data.audit_summary.recommended_action) {
+                        html += '<p><strong>Recommended Action:</strong> ' + data.audit_summary.recommended_action + '</p>';
+                    }
+                } else {
+                    html += '<p>' + data.audit_summary + '</p>';
+                }
+                html += '</div>';
+            }
+
+            document.getElementById('result').innerHTML = html;
         }
     </script>
+
 </body>
 </html>

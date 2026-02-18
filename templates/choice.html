@@ -237,10 +237,7 @@ footer {
 <script>
 function formatValue(value) {
     if (value === null || value === undefined) return "—";
-    if (typeof value === "object") {
-        if (Array.isArray(value)) return value.join(", ");
-        return JSON.stringify(value, null, 1);
-    }
+    if (Array.isArray(value)) return value.join(", ");
     return value;
 }
 
@@ -255,7 +252,7 @@ function renderFeatures(features) {
         html += `
             <div class="feature-card">
                 <h4>${key.replace(/_/g," ")}</h4>
-                <p>${formatValue(value)}</p>
+                ${typeof value === "object" && value !== null ? renderFeatures(value) : `<p>${formatValue(value)}</p>`}
             </div>
         `;
     }

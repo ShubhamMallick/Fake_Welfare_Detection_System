@@ -54,24 +54,13 @@ G = build_graph(df)
 
 def predict_fraud(data):
     try:
-        selected_id = data.get('beneficiary_id')
+        selected_id = data['features'].get('Beneficiary ID')
 
         if not selected_id:
             return {'error': 'beneficiary_id is required'}
         
         if selected_id not in df["beneficiary_id"].values:
-            # Return mock result if not in dataset
-            return {
-                'beneficiary_id': selected_id,
-                'ml_prediction': 'Beneficiary not in dataset',
-                'fraud_probability': 0,
-                'normal_probability': 100,
-                'connected_component_size': 0,
-                'fraud_ring_detected': False,
-                'degree_centrality': 0.0,
-                'master_agent_detected': False,
-                'beneficiary_details': {}
-            }
+            return {'error': 'Beneficiary not in dataset'}, 400
 
         row = df[df["beneficiary_id"] == selected_id].iloc[0]
 

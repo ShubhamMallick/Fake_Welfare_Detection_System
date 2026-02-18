@@ -244,6 +244,15 @@ function renderFeatures(features){
 }
 
 function renderSection(title,data){
+ if(title === "🤖 Agentic Reasoning" && data && data.explanation && data.audit_summary){
+  return `<div class="section">
+           <h2>${title}</h2>
+           <h3>AI Explanation</h3>
+           <p>${data.explanation.replace(/\n/g,"<br>")}</p>
+           <h3>Audit Summary</h3>
+           <p>${data.audit_summary.replace(/\n/g,"<br>")}</p>
+         </div>`;
+ }
  return `<div class="section">
            <h2>${title}</h2>
            ${renderFeatures(data)}
@@ -270,6 +279,7 @@ async function runPipeline(){
   html+=renderSection("📊 Anomaly Detection",data.anomaly_detection);
   html+=renderSection("🔁 Duplicate Detection",data.duplicate_detection);
   html+=renderSection("🕸 Fraud Network Analysis",data.fraud_network_analysis);
+  html+=renderSection("🤖 Agentic Reasoning",data.agentic_reasoning);
 
   resultDiv.innerHTML=html;
 

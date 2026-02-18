@@ -1,10 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, UploadFile, File
+from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.wsgi import WSGIMiddleware
-from fpdf import FPDF
-from fastapi.responses import StreamingResponse
-from io import BytesIO
 from fastapi.templating import Jinja2Templates
-from fastapi import Request, UploadFile, File
+from fpdf import FPDF
+from io import BytesIO
+from PIL import Image
 import uvicorn
 import importlib
 import re
@@ -102,31 +103,29 @@ async def pipeline(file: UploadFile = File(...)):
         if 'error' in fraud_result:
             return JSONResponse(status_code=400, content=fraud_result)
 
-        # Step 5: Prepare case data for agentic reasoning
-        case_data = features.copy()
-        case_data['anomaly_score'] = anomaly_result.get('anomaly_score', 0)
-        case_data['duplicate_risk'] = duplicate_result.get('duplicate_risk', 0) if duplicate_result.get('prediction') == 'Duplicate Detected' else 0
-        case_data['fraud_probability'] = fraud_result.get('fraud_probability', 0)
-        # Additional fields for risk scoring
-        case_data['bank_shared_count'] = fraud_result['beneficiary_details'].get('bank_account', 1)  # simplistic
-        case_data['phone_shared_count'] = fraud_result['beneficiary_details'].get('phone_number', 1)
-        case_data['agent_cluster_size'] = fraud_result.get('connected_component_size', 1)
-
-        # Step 6: Run agentic reasoning
-        # agentic_result = await asyncio.to_thread(agentic_mod.analyze_agentic, {'case_data': case_data})
-        # if 'error' in agentic_result:
-        #     return JSONResponse(status_code=400, content=agentic_result)
-
-        # Compile final response
-        result = {
+        case_data = {
             'nlp_extraction': nlp_result,
             'anomaly_detection': anomaly_result,
             'duplicate_detection': duplicate_result,
-            'fraud_network_analysis': fraud_result
-            # 'agentic_reasoning': agentic_result
+            'fraud_network_analysis': fraud_result,
+            'beneficiary_id': features['beneficiary_id']
         }
 
-        return result
+        # Step 6: Run agentic reasoning
+        from Admin_Decision_Layer.backend import agentic_analyze
+        agentic_result = await asyncio.to_thread(agentic_analyze, case_data)
+        if 'error' in agentic_result:
+            return JSONResponse(status_code=400, content=agentic_result)
+
+        # Compile final response
+        result = {
+            "nlp_extraction": nlp_result,
+            "anomaly_detection": anomaly_result,
+            "duplicate_detection": duplicate_result,
+            "fraud_network_analysis": fraud_result
+        }
+
+        return JSONResponse(content=result)
 
     except Exception as e:
         return JSONResponse(status_code=500, content={'error': str(e)})

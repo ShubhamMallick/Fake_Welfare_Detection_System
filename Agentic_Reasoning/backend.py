@@ -3,7 +3,6 @@ import os
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -60,10 +59,7 @@ Provide:
 """
 )
 
-explanation_chain = LLMChain(
-    llm=llm,
-    prompt=explain_prompt
-)
+explanation_chain = explain_prompt | llm
 
 # Audit summary chain
 audit_prompt = PromptTemplate(
@@ -94,10 +90,7 @@ Write in clear, formal, audit-ready language.
 """
 )
 
-audit_chain = LLMChain(
-    llm=llm,
-    prompt=audit_prompt
-)
+audit_chain = audit_prompt | llm
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -112,14 +105,16 @@ def analyze():
         risk_data = final_risk_score(case_data)
 
         # Step 2: Explanation
-        explanation = explanation_chain.run(case_data=str(case_data))
+        explanation_prompt_formatted = explain_prompt.format(case_data=str(case_data))
+        explanation = llm.invoke([{"role": "user", "content": explanation_prompt_formatted}]).content
 
         # Step 3: Audit summary
-        audit_summary = audit_chain.run(
+        audit_prompt_formatted = audit_prompt.format(
             case_data=str(case_data),
             risk_data=str(risk_data),
             explanation=explanation
         )
+        audit_summary = llm.invoke([{"role": "user", "content": audit_prompt_formatted}]).content
 
         # Prepare response
         result = {

@@ -1,3 +1,4 @@
+# Core data science
 numpy==1.24.4
 pandas==2.0.3
 scikit-learn==1.3.2
@@ -7,37 +8,45 @@ joblib==1.3.2
 xgboost==1.7.6
 networkx==3.1
 
+# Jupyter / Notebook
 jupyterlab==4.0.9
 notebook==7.0.6
 ipykernel==6.29.0
-streamlit==1.32.2
 
+# Web & utils
+fastapi==0.110.0
+uvicorn==0.29.0
+Flask==2.3.3
+Flask-Cors==4.0.0
+python-multipart==0.0.9
+jinja2==3.1.2
+
+# NLP + PDF
 spacy==3.7.2
 pdfplumber==0.10.3
 regex==2023.12.25
 tqdm==4.66.1
+
+# Date/time
 python-dateutil==2.8.2
 pytz==2023.3.post1
 six==1.16.0
 python-dotenv==1.0.1
 
+# OpenAI ecosystem
 openai==1.55.3
-httpx==0.27.2
-tiktoken==0.7.0
-pydantic==2.7.4
 
+# LangChain (LLM orchestration)
 langchain==0.2.14
 langchain-openai==0.1.22
+
+# LLM support for local tokens
+tiktoken==0.7.0
+
+# HTTP client support
+httpx==0.27.2
+
+# Extra AI tools (optional)
+crewai==0.41.1     # Python 3.10–<3.14 supported per docs :contentReference[oaicite:0]{index=0}
+
 langgraph==0.2.16
-crewai==0.41.1
-
-fastapi==0.110.0
-uvicorn==0.29.0
-Flask==2.3.3
-Werkzeug==2.3.8
-Flask-Cors==4.0.0
-python-multipart==0.0.9
-jinja2==3.1.2
-
-pyvis==0.3.2
-fpdf==1.7.2

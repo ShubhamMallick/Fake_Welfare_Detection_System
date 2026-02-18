@@ -3,9 +3,27 @@ from flask_cors import CORS
 import json
 import os
 from datetime import datetime
+from dotenv import load_dotenv
+
+# LangChain
+from langchain_openai import ChatOpenAI
+from langchain.prompts import PromptTemplate
 
 app = Flask(__name__)
 CORS(app)
+
+# Load environment
+load_dotenv()
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_BASE = os.getenv("OPENAI_API_BASE", "https://openrouter.ai/api/v1")
+
+llm = ChatOpenAI(
+    model="openai/gpt-oss-20b:free",
+    temperature=0,
+    api_key=OPENAI_API_KEY,
+    base_url=OPENAI_API_BASE,
+)
 
 DATA_FILE = 'admin_decisions.json'
 
@@ -18,6 +36,84 @@ def load_decisions():
 def save_decisions(data):
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=2)
+
+def final_risk_score(case_data):
+    """Calculate risk score based on suspicious patterns"""
+    risk_score = (
+        case_data.get('bank_shared_count', 0) * 0.4 +
+        case_data.get('phone_shared_count', 0) * 0.3 +
+        case_data.get('registrations_per_aadhaar', 0) * 0.2 +
+        case_data.get('agent_cluster_size', 0) * 0.1
+    )
+    
+    return {
+        'risk_score': min(risk_score, 10),
+        'risk_level': 'High' if risk_score > 7 else 'Medium' if risk_score > 4 else 'Low',
+        'factors': [
+            f"Bank shared count: {case_data.get('bank_shared_count', 0)}",
+            f"Phone shared count: {case_data.get('phone_shared_count', 0)}",
+            f"Registrations per Aadhaar: {case_data.get('registrations_per_aadhaar', 0)}"
+        ]
+    }
+
+# LangChain prompts
+explain_prompt = PromptTemplate(
+    input_variables=["nlp", "anomaly", "duplicate", "fraud"],
+    template="""
+You are a government fraud detection analyst.
+
+Analyze the following data from the fraud detection pipeline and explain why the case is suspicious.
+
+NLP Extraction: {nlp}
+
+Anomaly Detection: {anomaly}
+
+Duplicate Detection: {duplicate}
+
+Fraud Network Analysis: {fraud}
+
+Provide:
+- Bullet-point reasoning
+- Mention duplicate identity, shared financial links, or abnormal registrations
+- Keep explanation concise and professional
+
+Output your response as a JSON object with keys 'summary' (string) and 'key_points' (array of strings).
+"""
+)
+
+audit_prompt = PromptTemplate(
+    input_variables=["nlp", "anomaly", "duplicate", "fraud", "explanation"],
+    template="""
+You are a senior government welfare fraud auditor.
+
+Generate an official audit summary for the following suspicious beneficiary case based on the pipeline data.
+
+NLP Extraction: {nlp}
+
+Anomaly Detection: {anomaly}
+
+Duplicate Detection: {duplicate}
+
+Fraud Network Analysis: {fraud}
+
+AI Explanation: {explanation}
+
+Your report must include:
+
+1. Case Overview
+2. Key Fraud Indicators
+3. Evidence Summary
+4. Recommended Government Action
+
+Write in clear, formal, audit-ready language.
+
+Output your response as a JSON object with keys 'case_overview' (string), 'key_fraud_indicators' (array of strings), 'evidence_summary' (string), 'recommended_action' (string).
+"""
+)
+
+explanation_chain = explain_prompt | llm
+
+audit_chain = audit_prompt | llm
 
 @app.route('/cases')
 def get_cases():
@@ -61,26 +157,41 @@ def get_audit():
 @app.route('/agentic-reasoning/analyze', methods=['POST'])
 def agentic_analyze():
     data = request.json
-    case_data = data.get('case_data', {})
     
-    # Mock AI reasoning based on case data
-    ml_pred = case_data.get('ml_prediction', 'Unknown')
-    fraud_prob = case_data.get('fraud_probability', 0)
-    normal_prob = case_data.get('normal_probability', 100 - fraud_prob)
-    
-    explanation = f"The analysis indicates a prediction of '{ml_pred}' with a fraud probability of {fraud_prob}%. "
-    if ml_pred.lower() == 'fraud':
-        explanation += "This suggests potential fraudulent activity. Key factors include high anomaly scores and suspicious network connections."
+    if 'case_data' in data:
+        # Standalone mode (from agentic page)
+        nlp = "Not available (standalone mode)"
+        anomaly = "Not available (standalone mode)"
+        duplicate = "Not available (standalone mode)"
+        fraud = json.dumps(data['case_data'])
     else:
-        explanation += f"The case appears legitimate with a confidence level of {normal_prob}%. No immediate red flags detected."
+        # Pipeline mode (from pipeline endpoint)
+        nlp = json.dumps(data.get('nlp_extraction', {}))
+        anomaly = json.dumps(data.get('anomaly_detection', {}))
+        duplicate = json.dumps(data.get('duplicate_detection', {}))
+        fraud = json.dumps(data.get('fraud_network_analysis', {}))
     
-    audit_summary = f"Audit Recommendation: {'Immediate investigation required' if fraud_prob > 50 else 'Monitor for changes'}. "
-    audit_summary += f"Case ID: {case_data.get('beneficiary_details', {}).get('beneficiary_id', 'N/A')}. "
-    audit_summary += "Document all findings and follow up within 7 days."
+    # Generate explanation
+    explanation_prompt_formatted = explain_prompt.format(nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud)
+    explanation_raw = llm.invoke([{"role": "user", "content": explanation_prompt_formatted}]).content
+    
+    try:
+        explanation_data = json.loads(explanation_raw)
+    except json.JSONDecodeError:
+        explanation_data = {'summary': explanation_raw, 'key_points': []}
+    
+    # Generate audit summary
+    audit_prompt_formatted = audit_prompt.format(nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud, explanation=json.dumps(explanation_data))
+    audit_raw = llm.invoke([{"role": "user", "content": audit_prompt_formatted}]).content
+    
+    try:
+        audit_data = json.loads(audit_raw)
+    except json.JSONDecodeError:
+        audit_data = {'case_overview': audit_raw, 'key_fraud_indicators': [], 'evidence_summary': '', 'recommended_action': ''}
     
     return jsonify({
-        'explanation': explanation,
-        'audit_summary': audit_summary
+        'explanation': explanation_data,
+        'audit_summary': audit_data
     })
 
 # Mock some cases for demo
@@ -89,8 +200,8 @@ def init_cases():
     data = load_decisions()
     if not data['cases']:
         data['cases'] = [
-            {'id': '1', 'beneficiary_id': 'BEN10458932', 'prediction': 'Anomaly Detected', 'status': 'pending', 'anomaly_score': 0.85},
-            {'id': '2', 'beneficiary_id': 'BEN20567890', 'prediction': 'Duplicate Suspected', 'status': 'pending', 'duplicate_risk': 75}
+            {'id': '1', 'beneficiary_id': 'BEN10458932', 'prediction': 'Anomaly Detected', 'status': 'pending', 'anomaly_score': 0.85, 'fraud_probability': 85},
+            {'id': '2', 'beneficiary_id': 'BEN20567890', 'prediction': 'Duplicate Suspected', 'status': 'pending', 'duplicate_risk': 75, 'fraud_probability': 60}
         ]
         save_decisions(data)
     return jsonify({'status': 'initialized'})
