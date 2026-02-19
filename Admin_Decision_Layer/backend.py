@@ -116,30 +116,62 @@ def get_cases():
 def submit_decision():
     decision_data = request.json
     case_id = decision_data.get('case_id')
-    decision = decision_data.get('decision')  # 'approve' or 'reject'
+    decision = decision_data.get('decision')  # 'approve', 'reject', 'frozen', 'interview_scheduled', etc.
     notes = decision_data.get('notes', '')
-    
+    ai_analysis = decision_data.get('ai_analysis', None)
+    automated_action = decision_data.get('automated_action', False)
+
     data = load_decisions()
-    
-    # Add to audit
+
+    # For AI agent actions, create a new case if it doesn't exist
+    if automated_action and case_id.startswith(('AI_AGENT_', 'AUTO_')):
+        new_case = {
+            'id': case_id,
+            'beneficiary_id': decision_data.get('beneficiary_id', case_id),
+            'prediction': f'AI Agent Action: {decision.replace("_", " ").title()}',
+            'status': 'ai_action_taken',
+            'ai_analysis': ai_analysis,
+            'automated_action': True,
+            'action_type': decision,
+            'timestamp': datetime.now().isoformat()
+        }
+        data['cases'].append(new_case)
+
+    # Add to audit with AI agent information
     audit_entry = {
         'case_id': case_id,
         'decision': decision,
         'notes': notes,
         'timestamp': datetime.now().isoformat(),
-        'admin': 'admin_user'  # Placeholder
+        'admin': 'AI_AGENT' if automated_action else 'admin_user',
+        'ai_analysis': ai_analysis,
+        'automated_action': automated_action
     }
     data['audit'].append(audit_entry)
-    
-    # Update case status
+
+    # Update case status if case exists
     for case in data['cases']:
         if case['id'] == case_id:
             case['status'] = decision
             case['notes'] = notes
+            case['ai_analysis'] = ai_analysis
+            case['automated_action'] = automated_action
+            case['last_updated'] = datetime.now().isoformat()
             break
-    
+
     save_decisions(data)
-    return jsonify({'status': 'success'})
+
+    response_data = {
+        'status': 'success',
+        'automated_action': automated_action,
+        'case_id': case_id,
+        'decision': decision
+    }
+
+    if automated_action:
+        response_data['message'] = f'AI Agent successfully executed: {decision.replace("_", " ").title()}'
+
+    return jsonify(response_data)
 
 @app.route('/audit')
 def get_audit():
@@ -312,16 +344,62 @@ def generate_audio():
     except Exception as e:
         return str(e), 500
 
-# Mock some cases for demo
-@app.route('/init-cases')
+# Mock some cases for demo and AI agent actions
+@app.route('/init-cases', methods=['GET', 'POST'])
 def init_cases():
     data = load_decisions()
+
+    # If POST request with AI agent data
+    if request.method == 'POST':
+        agent_data = request.json
+        beneficiary_id = agent_data.get('beneficiary_id')
+        priority = agent_data.get('priority', 'normal')
+        ai_analysis = agent_data.get('ai_analysis', {})
+
+        # Create AI agent initiated investigation case
+        new_case = {
+            'id': f'AI_INVESTIGATION_{datetime.now().strftime("%Y%m%d_%H%M%S")}',
+            'beneficiary_id': beneficiary_id,
+            'prediction': 'AI Agent Investigation Initiated',
+            'status': 'under_investigation',
+            'ai_analysis': ai_analysis,
+            'priority': priority,
+            'automated_action': True,
+            'initiated_by': 'AI_AGENT',
+            'timestamp': datetime.now().isoformat()
+        }
+
+        data['cases'].append(new_case)
+
+        # Add to audit
+        audit_entry = {
+            'case_id': new_case['id'],
+            'decision': 'investigation_initiated',
+            'notes': f'AI Agent initiated investigation for beneficiary {beneficiary_id} with priority {priority}',
+            'timestamp': datetime.now().isoformat(),
+            'admin': 'AI_AGENT',
+            'ai_analysis': ai_analysis,
+            'automated_action': True
+        }
+        data['audit'].append(audit_entry)
+
+        save_decisions(data)
+
+        return jsonify({
+            'status': 'investigation_initiated',
+            'case_id': new_case['id'],
+            'beneficiary_id': beneficiary_id,
+            'message': f'AI Agent investigation initiated for beneficiary {beneficiary_id}'
+        })
+
+    # GET request - initialize demo cases if none exist
     if not data['cases']:
         data['cases'] = [
             {'id': '1', 'beneficiary_id': 'BEN10458932', 'prediction': 'Anomaly Detected', 'status': 'pending', 'anomaly_score': 0.85, 'fraud_probability': 85},
             {'id': '2', 'beneficiary_id': 'BEN20567890', 'prediction': 'Duplicate Suspected', 'status': 'pending', 'duplicate_risk': 75, 'fraud_probability': 60}
         ]
         save_decisions(data)
+
     return jsonify({'status': 'initialized'})
 
 if __name__ == '__main__':

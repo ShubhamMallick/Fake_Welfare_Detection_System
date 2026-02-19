@@ -899,6 +899,47 @@ function renderSection(title,data){
    }
   }
 
+  // Admin Agent Calling Section - Added after AI reasoning
+  html += '<div class="admin-agent-section" style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(99, 102, 241, 0.1)); border: 2px solid #8b5cf6; border-radius: 1rem;">';
+  html += '<h3 style="color: #7c3aed; margin-bottom: 1rem;"><i class="fas fa-robot"></i> Admin Agent Actions</h3>';
+  html += '<p style="margin-bottom: 1rem; color: #4c1d95;">Based on the AI analysis above, the admin agent can take the following actions:</p>';
+
+  html += '<div class="agent-actions-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">';
+
+  // Action 1: Initiate Investigation
+  html += '<div class="agent-action-card" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; border-radius: 0.75rem; padding: 1rem; text-align: center;">';
+  html += '<i class="fas fa-search" style="font-size: 2rem; color: #d97706; margin-bottom: 0.5rem;"></i>';
+  html += '<h4 style="color: #92400e; margin-bottom: 0.5rem;">Initiate Investigation</h4>';
+  html += '<p style="color: #78350f; font-size: 0.9rem; margin-bottom: 1rem;">Start a formal investigation process</p>';
+  html += '<button onclick="callAdminAgent(\'initiate_investigation\', ' + JSON.stringify(data).replace(/'/g, "\\'") + ')" class="agent-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600;">Execute</button>';
+  html += '</div>';
+
+  // Action 2: Freeze Payments
+  html += '<div class="agent-action-card" style="background: linear-gradient(135deg, #fee2e2, #fecaca); border: 2px solid #ef4444; border-radius: 0.75rem; padding: 1rem; text-align: center;">';
+  html += '<i class="fas fa-ban" style="font-size: 2rem; color: #dc2626; margin-bottom: 0.5rem;"></i>';
+  html += '<h4 style="color: #991b1b; margin-bottom: 0.5rem;">Freeze Payments</h4>';
+  html += '<p style="color: #7f1d1d; font-size: 0.9rem; margin-bottom: 1rem;">Temporarily halt beneficiary payments</p>';
+  html += '<button onclick="callAdminAgent(\'freeze_payments\', ' + JSON.stringify(data).replace(/'/g, "\\'") + ')" class="agent-btn" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600;">Execute</button>';
+  html += '</div>';
+
+  // Action 3: Schedule Interview
+  html += '<div class="agent-action-card" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border: 2px solid #3b82f6; border-radius: 0.75rem; padding: 1rem; text-align: center;">';
+  html += '<i class="fas fa-calendar-check" style="font-size: 2rem; color: #2563eb; margin-bottom: 0.5rem;"></i>';
+  html += '<h4 style="color: #1e40af; margin-bottom: 0.5rem;">Schedule Interview</h4>';
+  html += '<p style="color: #1d4ed8; font-size: 0.9rem; margin-bottom: 1rem;">Arrange beneficiary interview</p>';
+  html += '<button onclick="callAdminAgent(\'schedule_interview\', ' + JSON.stringify(data).replace(/'/g, "\\'") + ')" class="agent-btn" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600;">Execute</button>';
+  html += '</div>';
+
+  // Action 4: Generate Report
+  html += '<div class="agent-action-card" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 2px solid #10b981; border-radius: 0.75rem; padding: 1rem; text-align: center;">';
+  html += '<i class="fas fa-file-pdf" style="font-size: 2rem; color: #059669; margin-bottom: 0.5rem;"></i>';
+  html += '<h4 style="color: #047857; margin-bottom: 0.5rem;">Generate Report</h4>';
+  html += '<p style="color: #065f46; font-size: 0.9rem; margin-bottom: 1rem;">Create comprehensive fraud report</p>';
+  html += '<button onclick="callAdminAgent(\'generate_report\', ' + JSON.stringify(data).replace(/'/g, "\\'") + ')" class="agent-btn" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600;">Execute</button>';
+  html += '</div>';
+
+  html += '</div></div>';
+
   html += '</div>';
   return html;
  } else if(title.includes('NLP')) {
@@ -1061,6 +1102,202 @@ window.addEventListener('beforeunload', function() {
         currentSpeech.stop();
     }
 });
+
+// Admin Agent Tool Calling Functions
+async function callAdminAgent(action, agenticData) {
+    try {
+        // Show loading state on the button
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Executing...';
+        button.disabled = true;
+        button.style.opacity = '0.7';
+
+        let endpoint = '';
+        let payload = {};
+
+        switch(action) {
+            case 'initiate_investigation':
+                endpoint = '/admin-decision/init-cases';
+                payload = {
+                    beneficiary_id: 'AI_AGENT_' + Date.now(),
+                    priority: 'critical',
+                    ai_analysis: agenticData,
+                    action_type: 'investigation_initiated',
+                    timestamp: new Date().toISOString()
+                };
+                break;
+
+            case 'freeze_payments':
+                endpoint = '/admin-decision/decide';
+                payload = {
+                    case_id: `AI_AGENT_FREEZE_${Date.now()}`,
+                    decision: 'frozen',
+                    notes: `AI Agent: Payment freeze initiated based on agentic analysis. Risk indicators detected.`,
+                    ai_analysis: agenticData,
+                    automated_action: true
+                };
+                break;
+
+            case 'schedule_interview':
+                endpoint = '/admin-decision/decide';
+                payload = {
+                    case_id: `AI_AGENT_INTERVIEW_${Date.now()}`,
+                    decision: 'interview_scheduled',
+                    notes: `AI Agent: Interview scheduled based on agentic reasoning analysis.`,
+                    ai_analysis: agenticData,
+                    automated_action: true
+                };
+                break;
+
+            case 'generate_report':
+                // Use the existing report generation endpoint
+                const response = await fetch('/generate-report', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        beneficiary_id: 'AI_AGENT_' + Date.now(),
+                        agentic_analysis: agenticData,
+                        report_type: 'ai_agent_generated',
+                        timestamp: new Date().toISOString(),
+                        automated_generation: true
+                    })
+                });
+
+                if (response.ok) {
+                    // Create download link
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `ai_agent_fraud_report_${Date.now()}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    showAgentNotification('Report generated and downloaded successfully!', 'success', '📄');
+                } else {
+                    throw new Error('Failed to generate AI agent report');
+                }
+
+                // Restore button state
+                button.innerHTML = originalText;
+                button.disabled = false;
+                button.style.opacity = '1';
+                return;
+
+            default:
+                throw new Error('Unknown agent action: ' + action);
+        }
+
+        // Make the API call for other actions
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            let icon = '🤖';
+            if (action.includes('investigation')) icon = '🔍';
+            if (action.includes('freeze')) icon = '❄️';
+            if (action.includes('interview')) icon = '📅';
+
+            showAgentNotification(`AI Agent action "${action.replace('_', ' ')}" executed successfully!`, 'success', icon);
+        } else {
+            throw new Error(result.error || 'Agent action failed');
+        }
+
+    } catch (error) {
+        console.error('Admin agent error:', error);
+        showAgentNotification(`Agent action failed: ${error.message}`, 'error', '❌');
+    } finally {
+        // Always restore button state
+        const button = event.target;
+        if (button) {
+            button.innerHTML = 'Execute';
+            button.disabled = false;
+            button.style.opacity = '1';
+        }
+    }
+}
+
+function showAgentNotification(message, type = 'info', icon = '🤖') {
+    // Create notification element with AI agent styling
+    const notification = document.createElement('div');
+    notification.className = `agent-notification ${type}`;
+    notification.innerHTML = `
+        <div class="agent-notification-content">
+            <span class="agent-icon">${icon}</span>
+            <div class="agent-message">
+                <strong>AI Agent:</strong> ${message}
+            </div>
+        </div>
+    `;
+
+    // Add to page with special styling for AI agent notifications
+    document.body.appendChild(notification);
+
+    // Style the notification with AI agent theme
+    Object.assign(notification.style, {
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        background: type === 'success' ?
+                   'linear-gradient(135deg, #10b981, #059669)' :
+                   type === 'error' ?
+                   'linear-gradient(135deg, #ef4444, #dc2626)' :
+                   'linear-gradient(135deg, #6366f1, #4f46e5)',
+        color: 'white',
+        padding: '1.2rem 1.5rem',
+        borderRadius: '1rem',
+        boxShadow: '0 15px 35px rgba(0, 0, 0, 0.2)',
+        zIndex: '10000',
+        border: '2px solid rgba(255, 255, 255, 0.2)',
+        backdropFilter: 'blur(10px)',
+        transform: 'translateX(100%)',
+        transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        maxWidth: '400px'
+    });
+
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+
+    // Auto remove after 6 seconds
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 400);
+    }, 6000);
+
+    // Add some extra styling for the content
+    const content = notification.querySelector('.agent-notification-content');
+    Object.assign(content.style, {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem'
+    });
+
+    const agentIcon = notification.querySelector('.agent-icon');
+    Object.assign(agentIcon.style, {
+        fontSize: '1.5rem',
+        animation: 'pulse 2s ease-in-out infinite'
+    });
+
+    const agentMessage = notification.querySelector('.agent-message');
+    Object.assign(agentMessage.style, {
+        fontSize: '0.95rem',
+        lineHeight: '1.4'
+    });
+}
 </script>
     <!-- Floating background elements -->
     <div class="floating one"></div>
