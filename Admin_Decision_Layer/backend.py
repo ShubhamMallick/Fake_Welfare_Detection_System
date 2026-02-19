@@ -1,9 +1,12 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response, send_file
 from flask_cors import CORS
 import json
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+import time
+import io
+import gtts
 
 # LangChain
 from langchain_openai import ChatOpenAI
@@ -223,6 +226,91 @@ def analyze_agentic(data):
 def agentic_analyze():
     data = request.json
     return jsonify(analyze_agentic(data))
+
+@app.route('/agentic-stream')
+def agentic_stream():
+    data_str = request.args.get('data')
+    if not data_str:
+        return Response('data: {"error": "No data provided"}\n\n', mimetype='text/event-stream')
+
+    try:
+        data = json.loads(data_str)
+    except json.JSONDecodeError:
+        return Response('data: {"error": "Invalid data"}\n\n', mimetype='text/event-stream')
+
+    def generate():
+        try:
+            # Decide mode
+            if 'case_data' in data:
+                nlp = "Not available (standalone mode)"
+                anomaly = "Not available (standalone mode)"
+                duplicate = "Not available (standalone mode)"
+                fraud = json.dumps(data['case_data'])
+            else:
+                nlp = json.dumps(data.get('nlp_extraction', {}))
+                anomaly = json.dumps(data.get('anomaly_detection', {}))
+                duplicate = json.dumps(data.get('duplicate_detection', {}))
+                fraud = json.dumps(data.get('fraud_network_analysis', {}))
+
+            # Generate explanation
+            explanation_prompt_formatted = explain_prompt.format(
+                nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud
+            )
+            explanation_raw = llm.invoke([{"role": "user", "content": explanation_prompt_formatted}]).content
+            explanation_raw = clean_json_response(explanation_raw)
+
+            try:
+                explanation_data = json.loads(explanation_raw)
+                explanation_text = explanation_data.get('summary', explanation_raw) + ' ' + ' '.join(explanation_data.get('key_points', []))
+            except json.JSONDecodeError:
+                explanation_text = explanation_raw
+
+            # Stream explanation word by word
+            words = explanation_text.split()
+            for word in words:
+                yield f'data: {{"type": "explanation", "text": "{word} "}}\n\n'
+                time.sleep(0.05)  # simulate real-time
+
+            # Generate audit summary
+            audit_prompt_formatted = audit_prompt.format(
+                nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud, explanation=json.dumps(explanation_data)
+            )
+            audit_raw = llm.invoke([{"role": "user", "content": audit_prompt_formatted}]).content
+            audit_raw = clean_json_response(audit_raw)
+
+            try:
+                audit_data = json.loads(audit_raw)
+                audit_text = audit_data.get('case_overview', '') + ' ' + ' '.join(audit_data.get('key_fraud_indicators', [])) + ' ' + audit_data.get('evidence_summary', '') + ' ' + audit_data.get('recommended_action', '')
+            except json.JSONDecodeError:
+                audit_text = audit_raw
+
+            # Stream audit word by word
+            words = audit_text.split()
+            for word in words:
+                yield f'data: {{"type": "audit", "text": "{word} "}}\n\n'
+                time.sleep(0.05)
+
+            yield 'data: {"type": "end"}\n\n'
+
+        except Exception as e:
+            yield f'data: {{"error": "{str(e)}"}}\n\n'
+
+    return Response(generate(), mimetype='text/event-stream')
+
+@app.route('/generate-audio')
+def generate_audio():
+    text = request.args.get('text')
+    if not text:
+        return 'No text provided', 400
+
+    try:
+        tts = gtts.gTTS(text)
+        buffer = io.BytesIO()
+        tts.write_to_fp(buffer)
+        buffer.seek(0)
+        return send_file(buffer, mimetype='audio/mpeg')
+    except Exception as e:
+        return str(e), 500
 
 # Mock some cases for demo
 @app.route('/init-cases')
