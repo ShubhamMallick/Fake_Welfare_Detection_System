@@ -1,20 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fraud Detection Pipeline - Prayatna</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Detection Pipeline - Prayatna</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+    :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --secondary: #10b981;
+        --accent: #8b5cf6;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --success: #10b981;
+        --dark: #1e1b4b;
+        --light: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-700: #334155;
+        
+        --glow: 0 0 15px rgba(99, 102, 241, 0.3);
+        --glow-hover: 0 0 25px rgba(99, 102, 241, 0.5);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
 
-<style>
-/* ---------- GLOBAL ---------- */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    color: #333;
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        margin: 0;
+        background: linear-gradient(135deg, #f0f4ff 0%, #f0f9ff 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+        color: var(--dark);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        opacity: 0;
+        animation: fadeIn 0.8s ease-out forwards;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+body::before {
+    content: '';
+    position: fixed;
+    top: -10%;
+    left: -10%;
+    width: 120%;
+    height: 120%;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.2) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.15) 0%, transparent 35%),
+        radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 70% 30%, rgba(239, 68, 68, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 30% 50%, rgba(245, 158, 11, 0.1) 0%, transparent 45%);
+    pointer-events: none;
+    z-index: -2;
+    animation: gradientShift 25s ease infinite alternate;
+    filter: blur(40px);
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        linear-gradient(135deg, rgba(240, 244, 255, 0.9) 0%, rgba(240, 249, 255, 0.9) 100%),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236366f1' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    z-index: -1;
+    pointer-events: none;
+}
+
+@keyframes gradientShift {
+    0% { 
+        transform: scale(1) rotate(0deg) translate(0, 0);
+    }
+    33% {
+        transform: scale(1.05) rotate(1deg) translate(10px, 5px);
+    }
+    66% {
+        transform: scale(1.1) rotate(-1deg) translate(-5px, 10px);
+    }
+    100% { 
+        transform: scale(1.05) rotate(0.5deg) translate(5px, -5px);
+    }
+}
+
+/* Floating elements */
+.floating {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: -1;
+    filter: blur(60px);
+    opacity: 0.7;
+    animation: float 20s ease-in-out infinite;
+    will-change: transform, opacity;
+}
+
+.floating.one {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.5) 0%, transparent 70%);
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+    animation-duration: 25s;
+}
+
+.floating.two {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, transparent 70%);
+    bottom: 10%;
+    right: 10%;
+    animation-delay: 2s;
+    animation-duration: 30s;
+}
+
+.floating.three {
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
+    top: 60%;
+    left: 20%;
+    animation-delay: 4s;
+    animation-duration: 35s;
+}
+
+@keyframes float {
+    0% { 
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 0.7;
+    }
+    25% {
+        transform: translateY(-50px) rotate(5deg) scale(1.05);
+        opacity: 0.8;
+    }
+    50% {
+        transform: translateY(20px) rotate(-5deg) scale(0.95);
+        opacity: 0.6;
+    }
+    75% {
+        transform: translateY(-30px) rotate(3deg) scale(1.03);
+        opacity: 0.7;
+    }
+    100% { 
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 0.7;
+    }
+}
+
+/* Glow effect */
+.glow {
+    position: relative;
+    z-index: 1;
+}
+
+.glow::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    background: inherit;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    filter: blur(15px);
+}
+
+.glow:hover::after {
+    opacity: 0.7;
+    transform: scale(1.05);
 }
 
 /* ---------- NAVBAR ---------- */
@@ -22,45 +196,221 @@ body {
     position: sticky;
     top: 0;
     z-index: 1000;
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(14px);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .nav-container {
+    max-width: 1400px;
+    margin: 0 auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 24px;
+    padding: 1rem 2rem;
 }
 
 .logo {
-    font-size: 24px;
-    font-weight: bold;
-    color: #667eea;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.logo i {
+    font-size: 1.75rem;
+    color: var(--primary);
 }
 
 .nav-links {
     display: flex;
-    gap: 20px;
+    gap: 1.5rem;
+    align-items: center;
 }
 
 .nav-links a {
     text-decoration: none;
-    color: #333;
+    color: var(--gray-700);
     font-weight: 500;
-    transition: color 0.3s;
+    font-size: 0.95rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
 }
 
-.nav-links a:hover {
-    color: #667eea;
+.nav-links a::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    transition: var(--transition);
+    border-radius: 2px;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+    transform: translateY(-2px);
+    box-shadow: var(--glow);
+}
+
+.nav-links a:hover::before,
+.nav-links a.active::before {
+    width: 70%;
+}
+
+/* Add floating animation to logo */
+.logo {
+    animation: float 6s ease-in-out infinite;
 }
 
 /* ---------- MAIN CONTENT ---------- */
 main {
     max-width: 1200px;
-    margin: 0 auto;
-    padding: 40px 24px;
+    margin: 2rem auto;
+    padding: 2.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 1.5rem;
+    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    position: relative;
+    overflow: hidden;
+    transform: translateY(20px);
+    opacity: 0;
+    animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.3s;
+}
+
+@keyframes slideUp {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Add decorative elements */
+main::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+    animation: rotate 30s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+main::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    color: var(--dark);
+    font-size: 2.25rem;
+    font-weight: 700;
+    position: relative;
+    display: inline-block;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+h1::after {
+    content: '';
+    position: absolute;
+    bottom: -0.75rem;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent), var(--secondary));
+    background-size: 200% auto;
+    border-radius: 3px;
+    animation: gradient 3s linear infinite;
+}
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Add subtle animation to headings */
+h2 {
+    position: relative;
+    display: inline-block;
+}
+
+h2::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary);
+    transition: width 0.5s ease;
+}
+
+h2:hover::after {
+    width: 100%;
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin: 2rem 0 1.5rem;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+h2 i {
+    color: var(--primary);
+    font-size: 1.25em;
+}
+
+p, li {
+    color: var(--gray-700);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+ul, ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
 }
 
 .section {
@@ -98,13 +448,6 @@ button:hover {
     border-radius: 12px;
     background: #f7f9fc;
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-
-    opacity: 0;
-    transform: translateY(30px);
-    animation: sectionFade .8s ease forwards;
-}
-@keyframes sectionFade {
-    to { opacity:1; transform: translateY(0); }
 }
 
 /* ---------- FEATURES GRID ---------- */
@@ -139,6 +482,244 @@ button:hover {
 }
 
 .error { color: red; }
+
+/* ---------- BUTTON STYLES ---------- */
+button {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    transition: var(--transition);
+    border: none;
+    border-radius: 0.75rem;
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    transform: translateY(0);
+}
+
+button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+    color: white;
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary-dark), var(--accent));
+    opacity: 0;
+    transition: var(--transition);
+    z-index: -1;
+}
+
+button:hover::before {
+    opacity: 1;
+}
+
+/* Ripple effect */
+button::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transform: scale(10, 10);
+    opacity: 0;
+    transition: transform 0.5s, opacity 1s;
+}
+
+button:active::after {
+    transform: scale(0, 0);
+    opacity: 0.3;
+    transition: 0s;
+}
+
+/* Card hover effect */
+.section {
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), transparent);
+    opacity: 0;
+    transition: var(--transition);
+    z-index: -1;
+}
+
+.section:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.section:hover::before {
+    opacity: 1;
+}
+
+/* Feature cards */
+.feature-card {
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.feature-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.5s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 30px -10px rgba(99, 102, 241, 0.2);
+}
+
+.feature-card:hover::after {
+    transform: scaleX(1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .nav-container {
+        flex-direction: column;
+        padding: 1rem;
+    }
+    
+    .nav-links {
+        margin-top: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    main {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+    
+    h1 {
+        font-size: 1.75rem;
+    }
+    
+    h2 {
+        font-size: 1.3rem;
+    }
+}
+
+/* Add floating elements to the background */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: -1;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.1) 0%, transparent 30%),
+        radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.1) 0%, transparent 30%),
+        radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
+    animation: pulse 15s ease infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    main {
+        padding: 20px 16px;
+    }
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    .nlp-horizontal {
+        display: block;
+    }
+    .nlp-horizontal span {
+        display: block;
+        margin-bottom: 8px;
+    }
+}
+
+/* ---------- FOOTER ---------- */
+footer {
+    text-align: center;
+    padding: 20px;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    color: #666;
+    font-size: 14px;
+    margin-top: 40px;
+}
+
+/* ---------- SPINNER ---------- */
+.spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ---------- NLP HORIZONTAL ---------- */
+.nlp-horizontal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.nlp-horizontal span {
+    font-size: 14px;
+}
+
+/* ---------- ANIMATION FOR SECTIONS ---------- */
+.section {
+    opacity: 0;
+    transform: scale(0.9);
+    animation: zoomIn 0.5s ease-in-out forwards;
+}
 </style>
 </head>
 
@@ -183,7 +764,7 @@ button:hover {
 
 <label for="pdfFile">Select PDF Document</label>
 <input type="file" id="pdfFile" accept=".pdf">
-<button onclick="runBasicPipeline()">Run Basic Pipeline</button>
+<button onclick="runBasicPipeline()"><i class="fas fa-play"></i> Run Basic Pipeline</button>
 
 <div id="result"></div>
 
@@ -289,7 +870,7 @@ async function runBasicPipeline(){
  const fd=new FormData();
  fd.append("file",file);
 
- resultDiv.innerHTML=`<p class="loading">Running basic fraud detection pipeline...</p>`;
+  resultDiv.innerHTML=`<div class="loading"><div class="spinner"></div> Running basic fraud detection pipeline...</div>`;
 
  try{
   const res=await fetch("/pipeline-basic",{method:"POST",body:fd});
@@ -300,7 +881,7 @@ async function runBasicPipeline(){
   html+=renderSection("📊 Anomaly Detection",data.anomaly_detection);
   html+=renderSection("🔁 Duplicate Detection",data.duplicate_detection);
   html+=renderSection("🕸 Fraud Network Analysis",data.fraud_network_analysis);
-  html+=`<button onclick='runAgentic(${JSON.stringify(data).replace(/'/g, "\\'")})'>Run Agentic Reasoning</button>`;
+  html+=`<button onclick='runAgentic(${JSON.stringify(data).replace(/'/g, "\'")})'><i class="fas fa-brain"></i> Run Agentic Reasoning</button>`;
 
   resultDiv.innerHTML=html;
 
@@ -313,7 +894,7 @@ async function runAgentic(basicData){
  const resultDiv=document.getElementById("result");
 
  // Append loading for agentic
- resultDiv.innerHTML += `<p class="loading">Running agentic reasoning...</p>`;
+ resultDiv.innerHTML += `<div class="loading"><div class="spinner"></div> Running agentic reasoning...</div>`;
 
  try{
   const res=await fetch("/admin-decision/agentic-reasoning/analyze",{
@@ -332,6 +913,9 @@ async function runAgentic(basicData){
  }
 }
 </script>
-
+    <!-- Floating background elements -->
+    <div class="floating one"></div>
+    <div class="floating two"></div>
+    <div class="floating three"></div>
 </body>
 </html>
