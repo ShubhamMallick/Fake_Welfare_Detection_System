@@ -196,42 +196,52 @@ def analyze_agentic(data):
             duplicate = json.dumps(data.get('duplicate_detection', {}))
             fraud = json.dumps(data.get('fraud_network_analysis', {}))
 
+        print("Data prepared for LLM:")
+        print(f"NLP: {nlp[:200]}...")
+        print(f"Anomaly: {anomaly[:200]}...")
+        print(f"Duplicate: {duplicate[:200]}...")
+        print(f"Fraud: {fraud[:200]}...")
+
         # Generate explanation
-        explanation_prompt_formatted = explain_prompt.format(
-            nlp=nlp,
-            anomaly=anomaly,
-            duplicate=duplicate,
-            fraud=fraud,
-        )
-        explanation_raw = llm.invoke([
-            {"role": "user", "content": explanation_prompt_formatted}
-        ]).content
+        print("Generating explanation...")
+        explain_chain = explain_prompt | llm
+        explanation_result = explain_chain.invoke({
+            "nlp": nlp,
+            "anomaly": anomaly,
+            "duplicate": duplicate,
+            "fraud": fraud
+        })
+        explanation_raw = explanation_result.content
         explanation_raw = clean_json_response(explanation_raw)
+        print(f"Raw explanation response: {explanation_raw[:300]}...")
 
         try:
             explanation_data = json.loads(explanation_raw)
             print("Parsed explanation data:", explanation_data)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse explanation JSON: {e}")
             explanation_data = {'summary': explanation_raw, 'key_points': []}
             print("Failed to parse explanation, using fallback:", explanation_data)
 
         # Generate audit summary
-        audit_prompt_formatted = audit_prompt.format(
-            nlp=nlp,
-            anomaly=anomaly,
-            duplicate=duplicate,
-            fraud=fraud,
-            explanation=json.dumps(explanation_data),
-        )
-        audit_raw = llm.invoke([
-            {"role": "user", "content": audit_prompt_formatted}
-        ]).content
+        print("Generating audit summary...")
+        audit_chain = audit_prompt | llm
+        audit_result = audit_chain.invoke({
+            "nlp": nlp,
+            "anomaly": anomaly,
+            "duplicate": duplicate,
+            "fraud": fraud,
+            "explanation": json.dumps(explanation_data)
+        })
+        audit_raw = audit_result.content
         audit_raw = clean_json_response(audit_raw)
+        print(f"Raw audit response: {audit_raw[:300]}...")
 
         try:
             audit_data = json.loads(audit_raw)
             print("Parsed audit data:", audit_data)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse audit JSON: {e}")
             audit_data = {
                 'case_overview': audit_raw,
                 'key_fraud_indicators': [],
@@ -252,7 +262,23 @@ def analyze_agentic(data):
         # does not crash with a 500. Caller will turn this into 400.
         error_msg = f"Agentic reasoning failed: {str(e)}"
         print(error_msg)
-        return {'error': error_msg}
+        print(f"Full error details: {e.__class__.__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        # Check for specific error types and provide user-friendly messages
+        if hasattr(e, 'status_code') and e.status_code == 429:
+            error_msg = "AI service rate limit exceeded. The free tier has been reached (50 requests per day). To continue using advanced AI features, please consider: 1) Adding credits to your OpenRouter account, or 2) Switching to a different AI provider in the configuration."
+        elif "RateLimitError" in str(type(e)):
+            error_msg = "AI service rate limit exceeded. Please wait a few minutes before trying again, or upgrade your API plan for higher limits."
+        elif "AuthenticationError" in str(type(e)) or "APIError" in str(type(e)):
+            error_msg = "AI service authentication failed. Please check your API key configuration."
+        elif "APIConnectionError" in str(type(e)):
+            error_msg = "Unable to connect to AI service. Please check your internet connection and try again."
+        else:
+            error_msg = f"AI reasoning temporarily unavailable: {str(e)}"
+
+        return {'error': error_msg, 'error_type': e.__class__.__name__}
 
 @app.route('/agentic-reasoning/analyze', methods=['POST'])
 def agentic_analyze():

@@ -52,23 +52,23 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-body::before {
-    content: '';
-    position: fixed;
-    top: -10%;
-    left: -10%;
-    width: 120%;
-    height: 120%;
-    background: 
-        radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.2) 0%, transparent 40%),
-        radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.15) 0%, transparent 35%),
-        radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 40%),
-        radial-gradient(circle at 70% 30%, rgba(239, 68, 68, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 30% 50%, rgba(245, 158, 11, 0.1) 0%, transparent 45%);
-    pointer-events: none;
-    z-index: -2;
-    animation: gradientShift 25s ease infinite alternate;
-    filter: blur(40px);
+    body.animate::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 30%),
+            radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 30%),
+            radial-gradient(circle at 30% 50%, rgba(245, 158, 11, 0.15) 0%, transparent 45%);
+        pointer-events: none;
+        z-index: -2;
+        animation: gradientShift 25s ease infinite alternate;
+        filter: blur(40px);
+        opacity: 0;
+        transition: opacity 1s ease;
 }
 
 body::after {
@@ -191,24 +191,64 @@ body::after {
     transform: scale(1.05);
 }
 
+/* ---------- MAIN CONTENT ---------- */
+main {
+    max-width: calc(100% - 300px); /* Account for side nav width */
+    margin: 100px 20px 2rem 320px; /* Top: navbar height + extra padding, Left: sidebar width + padding */
+    padding: 2.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 1.5rem;
+    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.3s;
+    min-height: calc(100vh - 120px); /* Fill viewport height minus header and padding */
+}
+
 /* ---------- NAVBAR ---------- */
 .navbar {
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 1000;
-    background: rgba(255, 255, 255, 0.98);
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: #ffffff !important;
     backdrop-filter: blur(10px);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+/* Ensure main content starts below navbar */
+body {
+    padding-top: 80px !important;
+}
+
+/* Adjust main content positioning */
+main {
+    position: relative;
+    z-index: 1;
+    margin-top: 0;
+    padding-top: 2rem;
 }
 
 .nav-container {
+    width: 100%;
     max-width: 1400px;
     margin: 0 auto;
+    padding: 0 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
+    height: 100%;
 }
 
 .logo {
@@ -219,7 +259,6 @@ body::after {
     font-weight: 700;
     color: var(--primary);
     text-decoration: none;
-    transition: all 0.2s ease;
 }
 
 .logo i {
@@ -227,72 +266,41 @@ body::after {
     color: var(--primary);
 }
 
-.nav-links {
+.nav-menu {
     display: flex;
-    gap: 1.5rem;
+    gap: 2rem;
     align-items: center;
 }
 
-.nav-links a {
-    text-decoration: none;
+.nav-link {
     color: var(--gray-700);
+    text-decoration: none;
     font-weight: 500;
-    font-size: 0.95rem;
     padding: 0.5rem 1rem;
-    border-radius: 0.75rem;
-    transition: var(--transition);
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
     position: relative;
-    overflow: hidden;
 }
 
-.nav-links a::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--primary), var(--accent));
-    transition: var(--transition);
-    border-radius: 2px;
-}
-
-.nav-links a:hover,
-.nav-links a.active {
+.nav-link:hover {
     color: var(--primary);
     background: rgba(99, 102, 241, 0.1);
-    transform: translateY(-2px);
-    box-shadow: var(--glow);
 }
 
-.nav-links a:hover::before,
-.nav-links a.active::before {
-    width: 70%;
+.nav-link.active {
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+    font-weight: 600;
 }
 
-/* Add floating animation to logo */
-.logo {
-    animation: float 6s ease-in-out infinite;
-}
-
-/* ---------- MAIN CONTENT ---------- */
-main {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 2.5rem;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 1.5rem;
-    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    position: relative;
-    overflow: hidden;
-    transform: translateY(20px);
-    opacity: 0;
-    animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    animation-delay: 0.3s;
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--primary);
+    padding: 0.5rem;
 }
 
 @keyframes slideUp {
@@ -669,29 +677,134 @@ button:active::after {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
-    .nav-container {
-        flex-direction: column;
-        padding: 1rem;
+@media (max-width: 1024px) and (min-width: 769px) {
+    .sidebar-toggle {
+        display: block;
     }
     
-    .nav-links {
-        margin-top: 1rem;
-        flex-wrap: wrap;
-        justify-content: center;
+    .side-nav {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .side-nav.open {
+        transform: translateX(0);
     }
     
     main {
+        margin-left: 0;
+        margin-right: 0;
+        max-width: 100%;
+        margin-top: 90px;
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        height: 70px;
+    }
+    
+    .nav-container {
+        padding: 0 1rem;
+        height: 70px;
+    }
+    
+    .logo {
+        font-size: 1.4rem;
+    }
+    
+    /* Mobile menu - using the toggle button we added */
+    #mainNav {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        padding: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transform: translateY(-100%);
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s ease;
+        z-index: 999;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    #mainNav.active {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: all;
+    }
+    
+    #mainNav .nav-item {
+        width: 100%;
+        text-align: center;
+        padding: 0.75rem;
+        margin: 0.25rem 0;
+        border-radius: 0.5rem;
+        border: none;
+        background: none;
+    }
+    
+    #mainNav .nav-item:hover {
+        background: rgba(99, 102, 241, 0.1);
+    }
+    
+    .mobile-menu-toggle {
+        display: block !important;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--primary);
+        padding: 0.5rem;
+        margin-left: auto;
+    }
+    
+    main {
+        margin: 80px 1rem 2rem 1rem;
         padding: 1.5rem;
-        margin: 1rem;
+        max-width: none;
+        min-height: calc(100vh - 90px);
     }
     
     h1 {
-        font-size: 1.75rem;
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
     }
     
     h2 {
         font-size: 1.3rem;
+    }
+    
+    .section {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .nlp-horizontal {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .nlp-horizontal span {
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Agent action cards responsive */
+    .agent-actions-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .agent-action-card {
+        max-width: 100% !important;
     }
 }
 
@@ -718,19 +831,134 @@ body::after {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
-    main {
-        padding: 20px 16px;
+@media (max-width: 1024px) and (min-width: 769px) {
+    .sidebar-toggle {
+        display: block;
     }
+    
+    .side-nav {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .side-nav.open {
+        transform: translateX(0);
+    }
+    
+    main {
+        margin-left: 0;
+        margin-right: 0;
+        max-width: 100%;
+        margin-top: 90px;
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        height: 70px;
+    }
+    
+    .nav-container {
+        padding: 0 1rem;
+        height: 70px;
+    }
+    
+    .logo {
+        font-size: 1.4rem;
+    }
+    
+    /* Mobile menu - using the toggle button we added */
+    #mainNav {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        padding: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transform: translateY(-100%);
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s ease;
+        z-index: 999;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    #mainNav.active {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: all;
+    }
+    
+    #mainNav .nav-item {
+        width: 100%;
+        text-align: center;
+        padding: 0.75rem;
+        margin: 0.25rem 0;
+        border-radius: 0.5rem;
+        border: none;
+        background: none;
+    }
+    
+    #mainNav .nav-item:hover {
+        background: rgba(99, 102, 241, 0.1);
+    }
+    
+    .mobile-menu-toggle {
+        display: block !important;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--primary);
+        padding: 0.5rem;
+        margin-left: auto;
+    }
+    
+    main {
+        margin: 80px 1rem 2rem 1rem;
+        padding: 1.5rem;
+        max-width: none;
+        min-height: calc(100vh - 90px);
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 1.3rem;
+    }
+    
+    .section {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
     .features-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
+    
     .nlp-horizontal {
-        display: block;
+        flex-direction: column;
+        align-items: flex-start;
     }
+    
     .nlp-horizontal span {
-        display: block;
-        margin-bottom: 8px;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Agent action cards responsive */
+    .agent-actions-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .agent-action-card {
+        max-width: 100% !important;
     }
 }
 
@@ -743,6 +971,328 @@ footer {
     color: #666;
     font-size: 14px;
     margin-top: 40px;
+}
+
+/* ---------- SIDE NAVIGATION ---------- */
+.side-nav {
+    position: fixed;
+    left: 0;
+    top: 80px;
+    height: calc(100vh - 80px);
+    width: 280px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 2px 0 15px rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+    transform: translateX(0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 1rem 0;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+    position: fixed;
+    left: 20px;
+    top: 100px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1001;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+
+/* Adjust toggle button position when sidebar is collapsed */
+body.sidebar-collapsed .sidebar-toggle {
+    left: 10px;
+}
+
+.sidebar-toggle:hover {
+    background: var(--primary-dark);
+    transform: scale(1.1);
+}
+
+/* Body class when sidebar is collapsed */
+body.sidebar-collapsed .side-nav {
+    transform: translateX(-100%);
+}
+
+body.sidebar-collapsed main {
+    margin-left: 30px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Main Content Styles */
+main {
+    margin: 100px auto 3rem;
+    max-width: 1200px;
+    padding: 2rem 3rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* When sidebar is expanded */
+body:not(.sidebar-collapsed) main {
+    margin: 100px 2rem 3rem 340px;
+    max-width: calc(100% - 360px);
+    padding: 2.5rem 3rem;
+}
+
+/* When sidebar is collapsed */
+body.sidebar-collapsed main {
+    margin: 100px auto 3rem;
+    max-width: 1200px;
+    padding: 2.5rem 3.5rem;
+}
+
+/* Content sections spacing */
+main section {
+    margin-bottom: 3rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+main section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    main {
+        max-width: 100%;
+        padding: 2rem 2.5rem;
+    }
+    
+    body:not(.sidebar-collapsed) main {
+        margin: 90px 1.5rem 2.5rem 320px;
+        max-width: calc(100% - 340px);
+        padding: 2rem 2.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    body:not(.sidebar-collapsed) main {
+        margin-left: 300px;
+        max-width: calc(100% - 320px);
+    }
+}
+
+@media (max-width: 768px) {
+    main {
+        margin: 80px 1rem 2rem !important;
+        padding: 1.5rem 1.25rem !important;
+        max-width: 100% !important;
+        border-radius: 8px;
+    }
+    
+    body:not(.sidebar-collapsed) main {
+        margin: 80px 1rem 2rem !important;
+        max-width: 100% !important;
+        padding: 1.5rem 1.25rem !important;
+    }
+    
+    main section {
+        padding: 1.25rem 0;
+        margin-bottom: 2rem;
+    }
+}
+
+/* Improve typography spacing */
+main h1 {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+}
+
+main h2 {
+    margin: 2.25rem 0 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+main p {
+    margin-bottom: 1.25rem;
+    line-height: 1.7;
+}
+
+/* Form elements */
+main input,
+main button,
+main select,
+main textarea {
+    margin: 0.75rem 0;
+}
+
+main button {
+    padding: 0.75rem 1.5rem;
+    margin: 1rem 0;
+}
+
+.side-nav.open {
+    transform: translateX(0);
+}
+
+.nav-header {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
+}
+
+.nav-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-header i {
+    opacity: 0.8;
+}
+
+.voice-toggle-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.voice-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.voice-toggle-btn.active {
+    background: linear-gradient(135deg, #10b981, #059669);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.nav-content {
+    flex: 1;
+    padding: 1rem 0;
+    overflow-y: auto;
+}
+
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    padding: 0 1rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    color: var(--gray-700);
+    font-weight: 500;
+    border-radius: 0.75rem;
+    margin-bottom: 0.25rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+    border-radius: 0 2px 2px 0;
+}
+
+.nav-link:hover {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+    transform: translateX(8px);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1);
+}
+
+.nav-link.active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05));
+    color: var(--primary);
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
+}
+
+.nav-link.active::before {
+    transform: scaleY(1);
+}
+
+.nav-link i {
+    width: 20px;
+    text-align: center;
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+.nav-footer {
+    padding: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(248, 250, 252, 0.8);
+}
+
+.voice-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--gray-600);
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    transition: all 0.3s ease;
+}
+
+.voice-status.listening .status-indicator {
+    background: #10b981;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.voice-status.processing .status-indicator {
+    background: #f59e0b;
+    animation: pulse 0.5s ease-in-out infinite;
 }
 
 /* ---------- SPINNER ---------- */
@@ -780,23 +1330,76 @@ footer {
 
 <body>
 
+<!-- Sidebar Toggle Button -->
+<button class="sidebar-toggle" id="sidebarToggle">
+    <i class="fas fa-chevron-left"></i>
+</button>
+
+<!-- Side Navigation Bar -->
+<div id="side-nav" class="side-nav">
+    <div class="nav-header">
+        <h3><i class="fas fa-navicon"></i> Navigation</h3>
+        <button id="voice-toggle" class="voice-toggle-btn" title="Voice Navigation">
+            <i class="fas fa-microphone"></i>
+        </button>
+    </div>
+    <div class="nav-content">
+        <nav class="nav-links">
+            <a href="#overview" class="nav-link active" data-section="overview">
+                <i class="fas fa-info-circle"></i> Overview
+            </a>
+            <a href="#nlp" class="nav-link" data-section="nlp">
+                <i class="fas fa-file-alt"></i> NLP Extraction
+            </a>
+            <a href="#anomaly" class="nav-link" data-section="anomaly">
+                <i class="fas fa-chart-line"></i> Anomaly Detection
+            </a>
+            <a href="#duplicate" class="nav-link" data-section="duplicate">
+                <i class="fas fa-copy"></i> Duplicate Detection
+            </a>
+            <a href="#fraud" class="nav-link" data-section="fraud">
+                <i class="fas fa-network-wired"></i> Fraud Analysis
+            </a>
+            <a href="#integrated" class="nav-link" data-section="integrated">
+                <i class="fas fa-chart-bar"></i> Integrated Analysis
+            </a>
+            <a href="#agentic" class="nav-link" data-section="agentic">
+                <i class="fas fa-brain"></i> Agentic Reasoning
+            </a>
+        </nav>
+    </div>
+    <div class="nav-footer">
+        <div id="voice-status" class="voice-status">
+            <span class="status-indicator"></span>
+            <span class="status-text">Voice Off</span>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Bar -->
 <nav class="navbar">
-<div class="nav-container">
-<div class="logo"><i class="fas fa-shield-alt"></i> Prayatna</div>
-<div class="nav-links">
-<a href="/" class="nav-item">Home</a>
-<a href="/dashboard" class="nav-item">Dashboard</a>
-<a href="/pipeline-page" class="nav-item active">Pipeline</a>
-<a href="/agentic" class="nav-item">Agentic AI</a>
-</div>
-</div>
+    <div class="nav-container">
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i>
+            <span>Prayatna</span>
+        </div>
+        <div class="nav-menu">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/dashboard" class="nav-link">Dashboard</a>
+            <a href="/pipeline-page" class="nav-link active">Pipeline</a>
+            <a href="/agentic" class="nav-link">Agentic AI</a>
+        </div>
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
 </nav>
 
 <main>
 
 <h1>Fraud Detection Pipeline</h1>
 
-<section class="intro">
+<section class="intro" id="overview">
     <h2>Overview</h2>
     <p>The Fraud Detection Pipeline is a comprehensive analytical tool designed to perform end-to-end fraud assessment on beneficiary data extracted from PDF documents. By integrating multiple AI-powered modules, it provides a holistic evaluation of potential fraudulent activities in welfare distribution systems.</p>
 
@@ -830,6 +1433,72 @@ footer {
 </footer>
 
 <script>
+// Mobile menu toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const navMenu = document.querySelector('.nav-menu');
+    
+    if (mobileMenuToggle && navMenu) {
+        mobileMenuToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            navMenu.classList.toggle('active');
+            
+            // Update toggle icon
+            const icon = this.querySelector('i');
+            if (icon) {
+                if (navMenu.classList.contains('active')) {
+                    icon.className = 'fas fa-times';
+                } else {
+                    icon.className = 'fas fa-bars';
+                }
+            }
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!navMenu.contains(event.target) && !mobileMenuToggle.contains(event.target)) {
+                navMenu.classList.remove('active');
+                const icon = mobileMenuToggle.querySelector('i');
+                if (icon) {
+                    icon.className = 'fas fa-bars';
+                }
+            }
+        });
+        
+        // Close menu when clicking on a nav item
+        navMenu.addEventListener('click', function(event) {
+            if (event.target.classList.contains('nav-link')) {
+                navMenu.classList.remove('active');
+                const icon = mobileMenuToggle.querySelector('i');
+                if (icon) {
+                    icon.className = 'fas fa-bars';
+                }
+            }
+        });
+    }
+    
+    // Sidebar toggle functionality for tablets (keeping existing functionality)
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sideNav = document.getElementById('side-nav');
+    
+    if (sidebarToggle && sideNav) {
+        sidebarToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            sideNav.classList.toggle('open');
+            
+            // Update toggle icon
+            const icon = this.querySelector('i');
+            if (icon) {
+                if (sideNav.classList.contains('open')) {
+                    icon.className = 'fas fa-times';
+                } else {
+                    icon.className = 'fas fa-bars';
+                }
+            }
+        });
+    }
+});
+
 function formatValue(v){
  if(v==null) return "—";
  if(typeof v==="object") return JSON.stringify(v,null,1);
@@ -852,7 +1521,7 @@ function renderFeatures(features){
 
 function renderSection(title,data){
  if(title === "🤖 Agentic Reasoning" && data && typeof data === 'object'){
-  let html=`<div class="section">
+  let html=`<div class="section" id="agentic">
           <h2><i class="fas fa-brain"></i> ${title}
             <button onclick="speakSection(this.parentElement.parentElement)" class="tts-button" title="Listen to this section">
               <i class="fas fa-volume-up"></i>
@@ -943,7 +1612,7 @@ function renderSection(title,data){
   html += '</div>';
   return html;
  } else if(title.includes('NLP')) {
-  return `<div class="section">
+  return `<div class="section" id="nlp">
           <h2><i class="fas fa-file-alt"></i> ${title}
             <button onclick="speakSection(this.parentElement.parentElement)" class="tts-button" title="Listen to this section">
               <i class="fas fa-volume-up"></i>
@@ -955,10 +1624,24 @@ function renderSection(title,data){
         </div>`;
  } else {
   let icon = 'file-alt';
-  if(title.includes('Anomaly')) icon = 'chart-line';
-  else if(title.includes('Duplicate')) icon = 'copy';
-  else if(title.includes('Fraud')) icon = 'network-wired';
-  return `<div class="section">
+  let sectionId = '';
+  if(title.includes('Anomaly')) {
+    icon = 'chart-line';
+    sectionId = 'anomaly';
+  }
+  else if(title.includes('Duplicate')) {
+    icon = 'copy';
+    sectionId = 'duplicate';
+  }
+  else if(title.includes('Fraud')) {
+    icon = 'network-wired';
+    sectionId = 'fraud';
+  }
+  else if(title.includes('Integrated')) {
+    icon = 'chart-bar';
+    sectionId = 'integrated';
+  }
+  return `<div class="section" id="${sectionId}">
           <h2><i class="fas fa-${icon}"></i> ${title}
             <button onclick="speakSection(this.parentElement.parentElement)" class="tts-button" title="Listen to this section">
               <i class="fas fa-volume-up"></i>
@@ -1001,22 +1684,62 @@ async function runBasicPipeline(){
 async function runAgentic(basicData){
  const resultDiv=document.getElementById("result");
 
+ // Add debugging
+ console.log('runAgentic called with data:', basicData);
+
  // Append loading for agentic
  resultDiv.innerHTML += `<div class="loading"><div class="spinner"></div> Running agentic reasoning...</div>`;
 
  try{
+  console.log('Making fetch request to /admin-decision/agentic-reasoning/analyze');
   const res=await fetch("/admin-decision/agentic-reasoning/analyze",{
    method:"POST",
    headers:{"Content-Type":"application/json"},
    body:JSON.stringify(basicData)
   });
+
+  console.log('Fetch response status:', res.status);
+  console.log('Fetch response ok:', res.ok);
+
   const data=await res.json();
+  console.log('Response data:', data);
+
+  // Check if the response contains an error
+  if (data.error) {
+    console.error('Backend returned error:', data.error);
+    resultDiv.innerHTML = resultDiv.innerHTML.replace(/<div class="loading">Running agentic reasoning\.\.\.<\/div>$/, '');
+
+    // Create a user-friendly error display
+    const errorHtml = `
+      <div class="section error-section" id="agentic" style="border: 2px solid #ef4444; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05));">
+        <h2><i class="fas fa-exclamation-triangle"></i> AI Reasoning Error</h2>
+        <div style="padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 0.5rem; margin: 1rem 0;">
+          <p style="color: #dc2626; margin-bottom: 1rem;"><strong>AI Service Issue:</strong> ${data.error}</p>
+          ${data.error.includes('rate limit') ? `
+            <div style="background: rgba(251, 191, 36, 0.1); padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b;">
+              <h4 style="color: #d97706; margin-bottom: 0.5rem;"><i class="fas fa-lightbulb"></i> Solutions:</h4>
+              <ul style="color: #92400e; margin: 0; padding-left: 1.5rem;">
+                <li>Add credits to your OpenRouter account (recommended)</li>
+                <li>Wait for the daily limit to reset</li>
+                <li>Switch to a different AI provider</li>
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+        <p style="color: #6b7280; font-size: 0.9rem;">You can still use the basic fraud detection features without AI reasoning.</p>
+      </div>
+    `;
+
+    resultDiv.innerHTML += errorHtml;
+    return;
+  }
 
   // Remove loading and add agentic section
-  resultDiv.innerHTML = resultDiv.innerHTML.replace(/<p class="loading">Running agentic reasoning\.\.\.<\/p>$/, '');
+  resultDiv.innerHTML = resultDiv.innerHTML.replace(/<div class="loading">Running agentic reasoning\.\.\.<\/div>$/, '');
   resultDiv.innerHTML += renderSection("🤖 Agentic Reasoning",data);
 
  }catch(err){
+  console.error('Error in runAgentic:', err);
   resultDiv.innerHTML += `<p class="error">${err.message}</p>`;
  }
 }
@@ -1298,10 +2021,537 @@ function showAgentNotification(message, type = 'info', icon = '🤖') {
         lineHeight: '1.4'
     });
 }
+
+// ========== SIDE NAVIGATION FUNCTIONALITY ==========
+let voiceRecognition = null;
+let isVoiceActive = false;
+
+// Initialize side navigation
+function initSideNav() {
+    const sideNav = document.getElementById('side-nav');
+    const sidebarToggle = document.createElement('button');
+    sidebarToggle.className = 'sidebar-toggle';
+    sidebarToggle.id = 'sidebarToggle';
+    sidebarToggle.innerHTML = '<i class="fas fa-chevron-left"></i>';
+    document.body.appendChild(sidebarToggle);
+    
+    const voiceToggle = document.getElementById('voice-toggle');
+    const voiceStatus = document.getElementById('voice-status');
+
+    // Toggle sidebar
+    if (sidebarToggle && sideNav) {
+        // Toggle sidebar on button click
+        sidebarToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            document.body.classList.toggle('sidebar-collapsed');
+            
+            // Toggle icon
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-chevron-left');
+                icon.classList.toggle('fa-chevron-right');
+            }
+            
+            // Save state in localStorage
+            const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        });
+        
+        // Load saved state
+        const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        if (isCollapsed) {
+            document.body.classList.add('sidebar-collapsed');
+            const icon = sidebarToggle.querySelector('i');
+            if (icon) {
+                icon.classList.remove('fa-chevron-left');
+                icon.classList.add('fa-chevron-right');
+            }
+        }
+    }
+
+    // Voice toggle functionality
+    voiceToggle.addEventListener('click', toggleVoiceNavigation);
+
+    // Navigation link clicks (only for side navigation with data-section)
+    document.querySelectorAll('.nav-link[data-section]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = link.getAttribute('data-section');
+            scrollToSection(section);
+            updateActiveNavLink(section);
+        });
+    });
+
+    // Update active nav link on scroll
+    window.addEventListener('scroll', updateActiveNavOnScroll);
+
+    // Initialize voice recognition if supported
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        voiceRecognition = new SpeechRecognition();
+        voiceRecognition.continuous = true;
+        voiceRecognition.interimResults = false;
+        voiceRecognition.lang = 'en-US';
+
+        voiceRecognition.onstart = () => {
+            voiceStatus.classList.add('listening');
+            voiceStatus.classList.remove('processing');
+            voiceStatus.querySelector('.status-text').textContent = 'Listening...';
+            voiceToggle.classList.add('active');
+        };
+
+        voiceRecognition.onresult = (event) => {
+            const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+            handleVoiceCommand(transcript);
+        };
+
+        voiceRecognition.onend = () => {
+            if (isVoiceActive) {
+                // Restart if still active
+                voiceRecognition.start();
+            } else {
+                voiceStatus.classList.remove('listening', 'processing');
+                voiceStatus.querySelector('.status-text').textContent = 'Voice Off';
+                voiceToggle.classList.remove('active');
+            }
+        };
+
+        voiceRecognition.onerror = (event) => {
+            console.error('Voice recognition error:', event.error);
+            voiceStatus.classList.remove('listening', 'processing');
+            voiceStatus.querySelector('.status-text').textContent = 'Error';
+            setTimeout(() => {
+                voiceStatus.querySelector('.status-text').textContent = 'Voice Off';
+            }, 2000);
+        };
+    } else {
+        voiceToggle.style.opacity = '0.5';
+        voiceToggle.title = 'Voice recognition not supported in this browser';
+        voiceStatus.querySelector('.status-text').textContent = 'Not Supported';
+    }
+}
+
+// Toggle voice navigation
+function toggleVoiceNavigation() {
+    const voiceStatus = document.getElementById('voice-status');
+
+    if (!voiceRecognition) {
+        showVoiceNotification('Voice recognition not supported in this browser', 'error');
+        return;
+    }
+
+    if (isVoiceActive) {
+        stopVoiceNavigation();
+    } else {
+        startVoiceNavigation();
+    }
+}
+
+// Start voice navigation
+function startVoiceNavigation() {
+    try {
+        isVoiceActive = true;
+        voiceRecognition.start();
+        showVoiceNotification('Voice navigation activated! Say "go to [section]" or "navigate to [section]"', 'success');
+    } catch (error) {
+        console.error('Error starting voice recognition:', error);
+        showVoiceNotification('Failed to start voice recognition', 'error');
+        isVoiceActive = false;
+    }
+}
+
+// Stop voice navigation
+function stopVoiceNavigation() {
+    isVoiceActive = false;
+    if (voiceRecognition) {
+        voiceRecognition.stop();
+    }
+    showVoiceNotification('Voice navigation deactivated', 'info');
+}
+
+// Handle voice commands
+function handleVoiceCommand(transcript) {
+    console.log('Voice command received:', transcript);
+
+    const voiceStatus = document.getElementById('voice-status');
+    voiceStatus.classList.add('processing');
+    voiceStatus.classList.remove('listening');
+    voiceStatus.querySelector('.status-text').textContent = 'Processing...';
+
+    // Special commands that trigger actions
+    const specialCommands = {
+        'run basic pipeline': 'run-basic',
+        'run enhanced reasoning': 'run-enhanced',
+        'run agentic reasoning': 'run-enhanced',
+        'start listening': 'start-listening',
+        'stop listening': 'stop-listening',
+        'exit': 'stop-listening',
+        'help': 'show-help'
+    };
+
+    // Check for special commands first
+    for (const [command, action] of Object.entries(specialCommands)) {
+        if (transcript.toLowerCase().includes(command)) {
+            handleSpecialCommand(action, transcript);
+            return;
+        }
+    }
+
+    // Define section mappings with all possible variations
+    const sectionMappings = {
+        'overview': {
+            id: 'overview',
+            aliases: ['overview', 'introduction', 'welcome', 'home', 'main'],
+            element: document.querySelector('#overview')
+        },
+        'nlp': {
+            id: 'nlp',
+            aliases: ['nlp', 'natural language processing', 'text analysis', 'nlp extraction', 'nlp analysis', 'text extraction'],
+            element: document.querySelector('#nlp')
+        },
+        'anomaly': {
+            id: 'anomaly',
+            aliases: ['anomaly', 'anomaly detection', 'find anomalies', 'anomaly analysis', 'unusual patterns'],
+            element: document.querySelector('#anomaly')
+        },
+        'duplicate': {
+            id: 'duplicate',
+            aliases: ['duplicate', 'duplicate detection', 'find duplicates', 'duplicate analysis', 'duplicates'],
+            element: document.querySelector('#duplicate')
+        },
+        'fraud': {
+            id: 'fraud',
+            aliases: ['fraud', 'fraud detection', 'fraud analysis', 'fraud check', 'fraudulent activity'],
+            element: document.querySelector('#fraud')
+        },
+        'integrated': {
+            id: 'integrated',
+            aliases: ['integrated', 'integrated analysis', 'combined analysis', 'full analysis', 'results', 'summary'],
+            element: document.querySelector('#integrated')
+        },
+        'agentic': {
+            id: 'agentic',
+            aliases: ['agentic', 'agentic reasoning', 'agent analysis', 'agent results', 'ai analysis', 'ai reasoning'],
+            element: document.querySelector('#agentic')
+        }
+    };
+
+    // Check for navigation patterns
+    const navPatterns = [
+        /(?:go to|navigate to|show|scroll to|view|open) (?:the )?(?:section )?(.+)/i,
+        /(?:take me to|show me|display|see) (?:the )?(?:section )?(.+)/i,
+        /^(?:show |display |view )?(.+?)(?: section| analysis| extraction| view| page)?$/i
+    ];
+
+    // Extract the section name from the transcript
+    let sectionName = '';
+    for (const pattern of navPatterns) {
+        const match = transcript.match(pattern);
+        if (match && match[1]) {
+            sectionName = match[1].toLowerCase().trim();
+            break;
+        }
+    }
+    
+    // If no pattern matched, use the whole transcript
+    if (!sectionName) {
+        sectionName = transcript.toLowerCase().trim();
+    }
+
+    // Find the best matching section
+    let bestMatch = null;
+    let bestScore = 0;
+    const threshold = 0.4; // Lower threshold for more flexible matching
+
+    for (const [sectionId, section] of Object.entries(sectionMappings)) {
+        if (!section.element) continue; // Skip if element doesn't exist
+        
+        // Check against all aliases
+        for (const alias of section.aliases) {
+            const score = calculateSimilarity(sectionName, alias);
+            if (score > bestScore && score > threshold) {
+                bestScore = score;
+                bestMatch = section;
+            }
+        }
+    }
+
+    // If we found a match, navigate to it
+    if (bestMatch) {
+        scrollToSection(bestMatch.id);
+        updateActiveNavLink(bestMatch.id);
+        showVoiceNotification(`Navigating to ${bestMatch.id}`, 'success');
+    } else {
+        // If no match found, show help
+        const availableSections = Object.values(sectionMappings)
+            .filter(s => s.element)
+            .map(s => s.aliases[0])
+            .join(', ');
+            
+        showVoiceNotification(
+            `I couldn't find a section matching "${transcript}". ` +
+            `Available sections: ${availableSections}. ` +
+            'Try saying something like "go to overview" or "show me the fraud section".',
+            'warning'
+        );
+    }
+    
+    resetVoiceStatus();
+}
+
+// Helper function to calculate similarity between two strings (0 to 1)
+function calculateSimilarity(str1, str2) {
+    if (!str1 || !str2) return 0;
+    
+    // Convert to lowercase and trim
+    str1 = str1.toString().toLowerCase().trim();
+    str2 = str2.toString().toLowerCase().trim();
+    
+    // Check for direct match
+    if (str1 === str2) return 1;
+    
+    // Check for partial match
+    if (str1.includes(str2) || str2.includes(str1)) {
+        return 0.9 * (Math.min(str1.length, str2.length) / Math.max(str1.length, str2.length));
+    }
+    
+    // Calculate Jaccard similarity using character bigrams
+    const getBigrams = (str) => {
+        const bigrams = new Set();
+        for (let i = 0; i < str.length - 1; i++) {
+            bigrams.add(str.substr(i, 2));
+        }
+        return bigrams;
+    };
+    
+    const bigrams1 = getBigrams(str1);
+    const bigrams2 = getBigrams(str2);
+    
+    const intersection = new Set([...bigrams1].filter(x => bigrams2.has(x)));
+    const union = new Set([...bigrams1, ...bigrams2]);
+    
+    return union.size > 0 ? intersection.size / union.size : 0;
+}
+
+
+// Handle special commands like run-basic, run-enhanced, etc.
+function handleSpecialCommand(action, transcript) {
+    switch(action) {
+        case 'run-basic':
+            runBasicPipeline();
+            showVoiceNotification('Running basic fraud detection pipeline', 'success');
+            break;
+            
+    const resultDiv = document.getElementById('result');
+    if (!resultDiv || !resultDiv.innerHTML.trim()) {
+        showVoiceNotification('Please run basic pipeline first to get data for agentic reasoning', 'warning');
+        return;
+    }
+
+    const data = extractDataFromPage();
+    if (!data) {
+        showVoiceNotification('Unable to extract data from page. Please run basic pipeline first', 'error');
+        return;
+    }
+
+    runAgentic(data);
+    showVoiceNotification('Running enhanced agentic reasoning', 'success');
+            
+        case 'start-listening':
+            startVoiceNavigation();
+            break;
+            
+        case 'stop-listening':
+            stopVoiceNavigation();
+            break;
+            
+        case 'show-help':
+            const availableSections = Array.from(document.querySelectorAll('section[id]'))
+                .map(section => section.id.replace(/-/g, ' '))
+                .join(', ');
+            showVoiceNotification(`Available sections: ${availableSections}. Try saying 'go to [section name]'`, 'info');
+            break;
+    }
+    
+    resetVoiceStatus();
+}
+
+// Reset voice status after processing
+function resetVoiceStatus() {
+    const voiceStatus = document.getElementById('voice-status');
+    if (isVoiceActive) {
+        setTimeout(() => {
+            voiceStatus.classList.remove('processing');
+            voiceStatus.classList.add('listening');
+            voiceStatus.querySelector('.status-text').textContent = 'Listening...';
+        }, 1000);
+    }
+
+    // Reset processing state after a delay
+    setTimeout(() => {
+        if (isVoiceActive) {
+            voiceStatus.classList.remove('processing');
+            voiceStatus.classList.add('listening');
+            voiceStatus.querySelector('.status-text').textContent = 'Listening...';
+        }
+    }, 1000);
+}
+
+// Extract data from page for agentic reasoning
+function extractDataFromPage() {
+    // This is a simplified extraction - in real implementation you'd parse the actual data
+    // For now, return a basic structure that the agentic function expects
+    try {
+        const sections = document.querySelectorAll('.section');
+        const data = {};
+
+        sections.forEach(section => {
+            const title = section.querySelector('h2')?.textContent?.trim();
+            if (title) {
+                if (title.includes('NLP')) {
+                    data.nlp_extraction = section.querySelector('pre')?.textContent || section.textContent;
+                } else if (title.includes('Anomaly')) {
+                    data.anomaly_detection = section.querySelector('pre')?.textContent || section.textContent;
+                } else if (title.includes('Duplicate')) {
+                    data.duplicate_detection = section.querySelector('pre')?.textContent || section.textContent;
+                } else if (title.includes('Fraud')) {
+                    data.fraud_network_analysis = section.querySelector('pre')?.textContent || section.textContent;
+                }
+            }
+        });
+
+        return Object.keys(data).length > 0 ? data : null;
+    } catch (error) {
+        console.error('Error extracting data from page:', error);
+        return null;
+    }
+}
+
+// Scroll to section smoothly
+function scrollToSection(sectionId) {
+    const element = document.getElementById(sectionId) || document.querySelector(`[data-section="${sectionId}"]`);
+
+    if (element) {
+        const headerHeight = document.querySelector('.navbar')?.offsetHeight || 0;
+        const elementPosition = element.offsetTop - headerHeight - 20;
+
+        window.scrollTo({
+            top: elementPosition,
+            behavior: 'smooth'
+        });
+    }
+}
+
+// Update active navigation link
+function updateActiveNavLink(activeSection) {
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('data-section') === activeSection) {
+            link.classList.add('active');
+        }
+    });
+}
+
+// Update active nav link based on scroll position
+function updateActiveNavOnScroll() {
+    const sections = ['overview', 'nlp', 'anomaly', 'duplicate', 'fraud', 'integrated', 'agentic'];
+    const scrollPosition = window.scrollY + 100; // Offset for header
+
+    for (const sectionId of sections) {
+        const element = document.getElementById(sectionId) || document.querySelector(`[data-section="${sectionId}"]`);
+        if (element) {
+            const rect = element.getBoundingClientRect();
+            const elementTop = rect.top + window.scrollY;
+            const elementBottom = elementTop + rect.height;
+
+            if (scrollPosition >= elementTop && scrollPosition < elementBottom) {
+                updateActiveNavLink(sectionId);
+                break;
+            }
+        }
+    }
+}
+
+// Voice notification
+function showVoiceNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `voice-notification ${type}`;
+    notification.innerHTML = `
+        <div class="voice-notification-content">
+            <i class="fas fa-microphone"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    Object.assign(notification.style, {
+        position: 'fixed',
+        bottom: '20px',
+        left: '20px',
+        background: type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' :
+                   type === 'error' ? 'linear-gradient(135deg, #ef4444, #dc2626)' :
+                   type === 'warning' ? 'linear-gradient(135deg, #f59e0b, #d97706)' :
+                   'linear-gradient(135deg, #6366f1, #4f46e5)',
+        color: 'white',
+        padding: '1rem 1.5rem',
+        borderRadius: '1rem',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+        zIndex: '10001',
+        transform: 'translateX(-100%)',
+        transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        maxWidth: '350px',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.2)'
+    });
+
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+
+    // Auto remove
+    setTimeout(() => {
+        notification.style.transform = 'translateX(-100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 400);
+    }, 4000);
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initSideNav);
+
+// Stop voice recognition when page unloads
+window.addEventListener('beforeunload', () => {
+    if (voiceRecognition && isVoiceActive) {
+        voiceRecognition.stop();
+    }
+});
 </script>
     <!-- Floating background elements -->
+    <!-- Background Animation Elements -->
+    <div class="floating-bg"></div>
     <div class="floating one"></div>
     <div class="floating two"></div>
     <div class="floating three"></div>
 </body>
+
+<!-- Add this script to handle animations after page load -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add 'animate' class to body to start animations
+    document.body.classList.add('animate');
+    
+    // Ensure animations are hardware-accelerated
+    const animateElements = document.querySelectorAll('.floating, .floating-bg');
+    animateElements.forEach(el => {
+        el.style.willChange = 'transform, opacity';
+    });
+});
+</script>
 </html>
