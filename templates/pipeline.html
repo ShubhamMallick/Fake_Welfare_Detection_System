@@ -613,6 +613,61 @@ button:active::after {
     transform: scaleX(1);
 }
 
+/* Text-to-Speech Button */
+.tts-button {
+    background: linear-gradient(135deg, var(--secondary), #0ea5e9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin-left: 8px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.tts-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.tts-button:active {
+    transform: scale(0.95);
+}
+
+.tts-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0ea5e9, var(--accent));
+    opacity: 0;
+    transition: var(--transition);
+    z-index: -1;
+}
+
+.tts-button:hover::before {
+    opacity: 1;
+}
+
+.tts-button.speaking {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .nav-container {
@@ -798,7 +853,11 @@ function renderFeatures(features){
 function renderSection(title,data){
  if(title === "🤖 Agentic Reasoning" && data && typeof data === 'object'){
   let html=`<div class="section">
-          <h2><i class="fas fa-brain"></i> ${title}</h2>`;
+          <h2><i class="fas fa-brain"></i> ${title}
+            <button onclick="speakSection(this.parentElement.parentElement)" class="tts-button" title="Listen to this section">
+              <i class="fas fa-volume-up"></i>
+            </button>
+          </h2>`;
 
   if(data.explanation){
    html += '<h3>AI Explanation</h3>';
@@ -844,7 +903,11 @@ function renderSection(title,data){
   return html;
  } else if(title.includes('NLP')) {
   return `<div class="section">
-          <h2><i class="fas fa-file-alt"></i> ${title}</h2>
+          <h2><i class="fas fa-file-alt"></i> ${title}
+            <button onclick="speakSection(this.parentElement.parentElement)" class="tts-button" title="Listen to this section">
+              <i class="fas fa-volume-up"></i>
+            </button>
+          </h2>
           <div class="nlp-horizontal">
             ${Object.entries(data).map(([k,v]) => `<span><strong>${k.replace(/_/g," ")}:</strong> ${formatValue(v)}</span>`).join(' | ')}
           </div>
@@ -855,7 +918,11 @@ function renderSection(title,data){
   else if(title.includes('Duplicate')) icon = 'copy';
   else if(title.includes('Fraud')) icon = 'network-wired';
   return `<div class="section">
-          <h2><i class="fas fa-${icon}"></i> ${title}</h2>
+          <h2><i class="fas fa-${icon}"></i> ${title}
+            <button onclick="speakSection(this.parentElement.parentElement)" class="tts-button" title="Listen to this section">
+              <i class="fas fa-volume-up"></i>
+            </button>
+          </h2>
           ${renderFeatures(data)}
         </div>`;
  }
@@ -912,6 +979,88 @@ async function runAgentic(basicData){
   resultDiv.innerHTML += `<p class="error">${err.message}</p>`;
  }
 }
+
+// Text-to-Speech functionality
+let currentSpeech = null;
+
+function speakSection(sectionElement) {
+    const button = sectionElement.querySelector('.tts-button');
+    const text = extractTextFromSection(sectionElement);
+    
+    if (currentSpeech && !currentSpeech.paused) {
+        // Stop current speech
+        currentSpeech.stop();
+        button.classList.remove('speaking');
+        button.innerHTML = '<i class="fas fa-volume-up"></i>';
+        return;
+    }
+    
+    if (currentSpeech) {
+        currentSpeech.stop();
+    }
+    
+    // Start new speech
+    currentSpeech = new SpeechSynthesisUtterance(text);
+    
+    // Configure speech settings
+    currentSpeech.rate = 0.9; // Slightly slower than default
+    currentSpeech.pitch = 1; // Normal pitch
+    currentSpeech.volume = 0.8; // Slightly quieter
+    
+    // Update button state
+    button.classList.add('speaking');
+    button.innerHTML = '<i class="fas fa-stop"></i>';
+    
+    // Handle speech end
+    currentSpeech.onend = function() {
+        button.classList.remove('speaking');
+        button.innerHTML = '<i class="fas fa-volume-up"></i>';
+        currentSpeech = null;
+    };
+    
+    // Handle speech error
+    currentSpeech.onerror = function() {
+        button.classList.remove('speaking');
+        button.innerHTML = '<i class="fas fa-volume-up"></i>';
+        currentSpeech = null;
+        console.error('Speech synthesis error');
+    };
+    
+    // Start speaking
+    window.speechSynthesis.speak(currentSpeech);
+}
+
+function extractTextFromSection(sectionElement) {
+    // Extract clean text from the section for speech synthesis
+    const clone = sectionElement.cloneNode(true);
+    
+    // Remove the TTS button from the text
+    const ttsButtons = clone.querySelectorAll('.tts-button');
+    ttsButtons.forEach(btn => btn.remove());
+    
+    // Get all text content
+    let text = clone.textContent || clone.innerText;
+    
+    // Clean up the text
+    text = text.replace(/\s+/g, ' ').trim();
+    
+    // Remove extra whitespace and normalize
+    text = text.replace(/(\s*\n\s*)+/g, '. ');
+    text = text.replace(/\s*\.\s*\./g, '.');
+    text = text.replace(/\s*,\s*,/g, ',');
+    
+    // Remove special characters and icons
+    text = text.replace(/[🤖📄📊🔁🕸]/g, '');
+    
+    return text;
+}
+
+// Stop all speech when page unloads
+window.addEventListener('beforeunload', function() {
+    if (currentSpeech) {
+        currentSpeech.stop();
+    }
+});
 </script>
     <!-- Floating background elements -->
     <div class="floating one"></div>
