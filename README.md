@@ -146,13 +146,19 @@ OPENAI_API_BASE=https://api.openai.com/v1  # or your preferred endpoint
 
 ## 🚀 Running the Application
 
-Start the integrated server:
+Start the integrated FastAPI server using uvicorn:
 
 ```powershell
-python main.py
+uvicorn main:app --reload
 ```
 
 The application runs on: **`http://localhost:8000`**
+
+For production deployment without auto-reload:
+
+```powershell
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
 
 ## 🌐 Web Interface
 
