@@ -1,112 +1,150 @@
 # Prayatna – Fake Welfare / Fraud Detection System
 
-An integrated, modular fraud-detection system for welfare/beneficiary programs. The project combines multiple ML modules (NLP extraction, anomaly detection, duplicate detection, fraud-network analysis) behind a single **FastAPI** gateway and provides a modern multi-page web UI (Jinja2 templates).
+An integrated, modular fraud-detection system for welfare/beneficiary programs. The project combines multiple ML modules (NLP extraction, anomaly detection, duplicate detection, fraud-network analysis) with AI-powered agentic reasoning behind a single **FastAPI** gateway and provides a modern multi-page web UI with voice navigation capabilities.
 
-## Features
+## 🚀 Key Features
 
-- **NLP Feature Extraction (PDF)**
-  - Extracts structured features from beneficiary PDFs using regex + spaCy NER.
-- **Anomaly Detection**
-  - IsolationForest-based anomaly scoring for fraud risk patterns.
-- **Duplicate Detection**
-  - XGBoost pipeline for detecting likely duplicate/linked beneficiary registrations.
-- **Fraud Network Analysis**
-  - NetworkX graph + ML model to detect fraud rings and high-centrality “master agent” behavior.
-- **Pipeline Orchestration**
-  - Upload one PDF and run NLP → anomaly → duplicate → fraud-network sequentially.
-- **Dashboard**
-  - Visual + tabular overview of cases and scores.
-- **Admin Decision Layer**
-  - Stores admin decisions and maintains an audit trail in `admin_decisions.json`.
+### Core Detection Modules
+- **📄 NLP Feature Extraction (PDF)**
+  - Extracts structured features from beneficiary PDFs using regex + spaCy NER
+  - Supports multiple document formats
+- **📊 Anomaly Detection**
+  - IsolationForest-based anomaly scoring for fraud risk patterns
+  - Real-time fraud probability assessment
+- **🔄 Duplicate Detection**
+  - XGBoost pipeline for detecting likely duplicate/linked beneficiary registrations
+  - Advanced fuzzy matching algorithms
+- **🕸️ Fraud Network Analysis**
+  - NetworkX graph + ML model to detect fraud rings and high-centrality "master agent" behavior
+  - Visual network analysis with graph caching
 
-## Project Structure
+### 🤖 AI-Powered Features
+- **🧠 Agentic Reasoning**
+  - Integrated OpenAI/LangChain-powered analysis
+  - Automated case explanation and audit summary generation
+  - Intelligent fraud pattern recognition
+- **🎙️ Voice Navigation**
+  - Hands-free operation with voice commands
+  - Fuzzy matching for natural language input
+  - Section navigation and pipeline control
+
+### User Interface
+- **🎨 Modern Web UI**
+  - Responsive design with glassmorphism effects
+  - Animated navigation bar with hover effects
+  - Voice-controlled interface
+- **📈 Pipeline Orchestration**
+  - Upload one PDF and run NLP → anomaly → duplicate → fraud-network → agentic reasoning sequentially
+  - Real-time progress tracking
+- **📊 Interactive Dashboard**
+  - Visual + tabular overview of cases and scores
+  - Admin decision tracking and audit trails
+- **⚙️ Admin Decision Layer**
+  - Stores admin decisions and maintains audit trail in `admin_decisions.json`
+  - Automated report generation
+
+## 🏗️ Project Structure
 
 ```
 Prayatna/
-  main.py
-  requirements.txt
-  admin_decisions.json
-
-  templates/
-    nlp.html
-    anomaly.html
-    duplicate.html
-    fraud.html
-    agentic.html
-    pipeline.html
-    dashboard.html
-    choice.html
-    admin_decision.html
-
-  NLP_Extractor/
-    backend_nlp.py
-    NLP_Extractor.py
-    Document*.pdf/docx
-
-  Anomaly_Detection/
-    backend.py
-    isolation_forest_model.pkl
-    Anomaly_Detection_50000.csv
-
-  Duplicate_Detection/
-    backend.py
-    duplicate_detection_pipeline_xgb.pkl
-    duplicate_detection_50000_v4.csv
-
-  Fraud_Network_Analysis/
-    backend.py
-    fraud_network_model.pkl
-    fraud_network_50000.csv
-    graph_cache.pkl
-
-  Admin_Decision_Layer/
-    backend.py
-
-  Agentic_Reasoning/
-    backend.py
-    *.ipynb
+├── main.py                           # FastAPI main application
+├── requirements.txt                  # Python dependencies
+├── admin_decisions.json              # Admin decision storage
+├── README.md                         # This file
+│
+├── templates/                        # Jinja2 HTML templates
+│   ├── pipeline.html                 # Main pipeline interface with voice nav
+│   ├── nlp.html                      # NLP extraction UI
+│   ├── anomaly.html                  # Anomaly detection UI
+│   ├── duplicate.html                # Duplicate detection UI
+│   ├── fraud.html                    # Fraud network analysis UI
+│   ├── agentic.html                  # Agentic reasoning UI
+│   ├── dashboard.html                # Dashboard overview
+│   ├── choice.html                   # Feature selection UI
+│   └── admin_decision.html           # Admin decision interface
+│
+├── NLP_Extractor/
+│   ├── backend_nlp.py               # Flask NLP service
+│   ├── NLP_Extractor.py             # Core NLP logic
+│   └── Document*.pdf/docx           # Sample documents
+│
+├── Anomaly_Detection/
+│   ├── backend.py                   # Flask anomaly service
+│   ├── isolation_forest_model.pkl   # Trained ML model
+│   └── Anomaly_Detection_50000.csv  # Training dataset
+│
+├── Duplicate_Detection/
+│   ├── backend.py                   # Flask duplicate service
+│   ├── duplicate_detection_pipeline_xgb.pkl  # XGBoost model
+│   └── duplicate_detection_50000_v4.csv      # Training data
+│
+├── Fraud_Network_Analysis/
+│   ├── backend.py                   # Flask fraud network service
+│   ├── fraud_network_model.pkl      # Network analysis model
+│   ├── fraud_network_50000.csv      # Network dataset
+│   └── graph_cache.pkl              # Cached network graphs
+│
+├── Admin_Decision_Layer/
+│   └── backend.py                   # Flask admin decision service
+│
+├── Agentic_Reasoning/
+│   ├── backend.py                   # Flask agentic reasoning service
+│   ├── Explaining_Suspicious_Cases.ipynb    # Explanation logic
+│   └── Audit_Summary_Generator.ipynb         # Audit generation
+│
+└── venv/                           # Virtual environment (not in repo)
 ```
 
-## Architecture Overview
+## 🏛️ Architecture Overview
 
-- **FastAPI** (`main.py`) is the primary entrypoint.
-- Individual module backends are implemented as **Flask apps** and are mounted into FastAPI using **`WSGIMiddleware`**.
-- The browser UI is served via **Jinja2 templates** from `templates/`.
+- **FastAPI** (`main.py`) serves as the primary entrypoint and API gateway
+- Individual module backends are implemented as **Flask applications** and mounted into FastAPI using **`WSGIMiddleware`**
+- The browser UI is served via **Jinja2 templates** from the `templates/` directory
+- **Voice navigation** powered by Web Speech API with fuzzy matching
+- **Agentic reasoning** integrated with OpenAI API for intelligent analysis
 
-### Mounted Backends (FastAPI → Flask)
+### 🔗 Mounted Backends (FastAPI → Flask)
 
-`main.py` mounts these Flask apps:
+`main.py` mounts these Flask applications:
 
 - `/nlp-extractor` → `NLP_Extractor/backend_nlp.py`
 - `/anomaly` → `Anomaly_Detection/backend.py`
 - `/duplicate` → `Duplicate_Detection/backend.py`
 - `/fraud-network` → `Fraud_Network_Analysis/backend.py`
 - `/admin-decision` → `Admin_Decision_Layer/backend.py`
+- `/agentic-reasoning` → `Agentic_Reasoning/backend.py` *(Now fully integrated!)*
 
-> Note: There is also an LLM-based agentic backend in `Agentic_Reasoning/backend.py`, but it is currently **not mounted** in `main.py`.
+## ⚙️ Installation & Setup (Windows)
 
-## Setup (Windows)
-
-### 1) Create & activate a virtual environment
+### 1) Create & Activate Virtual Environment
 
 ```powershell
 python -m venv venv
 .\venv\Scripts\activate
 ```
 
-### 2) Install dependencies
+### 2) Install Dependencies
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-### 3) Install spaCy model
+### 3) Install spaCy Language Model
 
 ```powershell
 python -m spacy download en_core_web_sm
 ```
 
-## Run the Application
+### 4) Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_API_BASE=https://api.openai.com/v1  # or your preferred endpoint
+```
+
+## 🚀 Running the Application
 
 Start the integrated server:
 
@@ -114,102 +152,153 @@ Start the integrated server:
 python main.py
 ```
 
-By default, it runs on:
+The application runs on: **`http://localhost:8000`**
 
-- `http://localhost:8000`
+## 🌐 Web Interface
 
-## Web Pages (UI)
+### Main Pages
+- **`/`** → Home/Dashboard redirect
+- **`/pipeline-page`** → Full pipeline interface with voice navigation *(Main UI)*
+- **`/dashboard`** → Analytics dashboard with case overview
+- **`/admin-decision-page`** → Admin decision interface
 
-These are served by FastAPI routes in `main.py`:
+### Module-Specific Pages
+- **`/nlp`** → NLP Feature Extraction
+- **`/anomaly`** → Anomaly Detection
+- **`/duplicate`** → Duplicate Detection
+- **`/fraud`** → Fraud Network Analysis
+- **`/agentic`** → Agentic Reasoning (AI Analysis)
 
-- `/` or `/nlp` → NLP Feature Extraction (`templates/nlp.html`)
-- `/anomaly` → Anomaly Detection (`templates/anomaly.html`)
-- `/duplicate` → Duplicate Detection (`templates/duplicate.html`)
-- `/fraud` → Fraud Network Analysis UI (`templates/fraud.html`)
-- `/pipeline-page` → Full Pipeline UI (`templates/pipeline.html`)
-- `/dashboard` → Dashboard (`templates/dashboard.html`)
-- `/choice` → Choice / feature display UI (`templates/choice.html`)
-- `/admin-decision-page` → Admin decision UI (`templates/admin_decision.html`)
-- `/agentic` → Agentic reasoning UI (`templates/agentic.html`)
+### Voice Navigation Commands 🎙️
 
-## API Endpoints
+The main pipeline page (`/pipeline-page`) supports voice commands:
+
+#### **Special Commands:**
+- `"run basic pipeline"` → Execute fraud detection pipeline
+- `"run enhanced reasoning"` / `"run agentic reasoning"` → AI-powered analysis
+- `"start listening"` → Activate voice navigation
+- `"stop listening"` / `"exit"` → Deactivate voice navigation
+- `"help"` → Show available commands
+
+#### **Navigation Commands:**
+- `"go to overview"` / `"show dashboard"` / `"main page"`
+- `"go to nlp"` / `"natural language processing"` / `"text analysis"`
+- `"go to anomaly"` / `"anomaly detection"` / `"find anomalies"`
+- `"go to duplicate"` / `"duplicate detection"` / `"find duplicates"`
+- `"go to fraud"` / `"fraud analysis"` / `"fraud network"`
+- `"go to integrated"` / `"full analysis"` / `"results"`
+- `"go to agentic"` / `"agentic reasoning"` / `"ai analysis"`
+
+**Example Usage:** Say *"go to overview"* or *"run basic pipeline"* while on the pipeline page.
+
+## 📡 API Endpoints
 
 ### FastAPI Orchestrator
 
-- `POST /pipeline`
-  - Upload a PDF and run the full pipeline.
-  - Returns a combined JSON:
-    - `nlp_extraction`
-    - `anomaly_detection`
-    - `duplicate_detection`
-    - `fraud_network_analysis`
+- **`POST /pipeline`**
+  - Upload PDF and run complete pipeline
+  - Returns: `nlp_extraction`, `anomaly_detection`, `duplicate_detection`, `fraud_network_analysis`
 
-- `GET /dashboard-data`
-  - Returns case stats + cases list from `admin_decisions.json`.
+- **`GET /dashboard-data`**
+  - Returns case statistics and admin decisions from `admin_decisions.json`
 
-- `POST /generate-report`
-  - Generates a PDF report (FPDF) from a case JSON payload.
+- **`POST /generate-report`**
+  - Generates PDF report from case data using FPDF
 
-### NLP Extractor (Flask; mounted under `/nlp-extractor`)
+### Module APIs (Flask, mounted under respective paths)
 
-- `POST /nlp-extractor/extract`
-  - Form-data file field: `pdf`
+#### NLP Extractor (`/nlp-extractor`)
+- **`POST /nlp-extractor/extract`** → Extract features from uploaded PDF
 
-### Anomaly Detection (Flask; mounted under `/anomaly`)
+#### Anomaly Detection (`/anomaly`)
+- **`POST /anomaly/predict`** → Score fraud probability from features
 
-- `POST /anomaly/predict`
-  - JSON body with numeric features:
-    - `annual_income`
-    - `registrations_per_aadhaar`
-    - `bank_shared_count`
-    - `phone_shared_count`
+#### Duplicate Detection (`/duplicate`)
+- **`POST /duplicate/predict`** → Detect duplicate registrations
 
-### Duplicate Detection (Flask; mounted under `/duplicate`)
+#### Fraud Network Analysis (`/fraud-network`)
+- **`POST /fraud-network/predict`** → Analyze beneficiary networks
 
-- `POST /duplicate/predict`
-  - JSON body (examples):
-    - `aadhaar_like_id`, `phone_number`, `bank_account`, `household_id`, `name`, `district`
+#### Admin Decision Layer (`/admin-decision`)
+- **`GET /admin-decision/cases`** → Get case list
+- **`POST /admin-decision/decide`** → Submit admin decision
+- **`GET /admin-decision/audit`** → Get audit trail
+- **`GET /admin-decision/init-cases`** → Initialize sample cases
+- **`POST /admin-decision/agentic-reasoning/analyze`** → AI-powered case analysis
 
-### Fraud Network Analysis (Flask; mounted under `/fraud-network`)
+## 🔄 Workflow (Typical Usage)
 
-- `POST /fraud-network/predict`
-  - JSON body:
-    - `beneficiary_id`
+1. **Navigate** to Pipeline page (`/pipeline-page`)
+2. **Upload** a beneficiary PDF document
+3. **Run** basic pipeline: NLP → Anomaly → Duplicate → Fraud Network
+4. **Run** agentic reasoning for AI-powered analysis and recommendations
+5. **Review** results on interactive dashboard
+6. **Submit** admin decisions with audit trail
+7. **Generate** automated reports
 
-### Admin Decision Layer (Flask; mounted under `/admin-decision`)
+### Voice-Controlled Workflow 🎙️
+- **Say** *"start listening"* to activate voice navigation
+- **Say** *"run basic pipeline"* to execute analysis
+- **Say** *"go to [section]"* to navigate between results
+- **Say** *"run enhanced reasoning"* for AI analysis
 
-- `GET /admin-decision/cases`
-- `POST /admin-decision/decide`
-- `GET /admin-decision/audit`
-- `GET /admin-decision/init-cases`
-- `POST /admin-decision/agentic-reasoning/analyze`
-  - **Currently returns mock** explanation/audit summary text based on input probabilities.
+## 🤖 AI Features & Configuration
 
-## Data Flow (Typical Usage)
+### Agentic Reasoning
+- **OpenAI Integration**: GPT-powered case analysis and explanations
+- **LangChain**: Structured prompts for consistent AI responses
+- **Error Handling**: Comprehensive rate limit and API error management
+- **Fallback Responses**: Graceful degradation when AI services unavailable
 
-1. Go to **NLP Extraction** (`/nlp`) and extract features from a PDF.
-2. Use the extracted features across other modules (stored client-side in `localStorage` on some pages).
-3. Run **Pipeline** (`/pipeline-page`) to execute all modules automatically.
-4. Review results on **Dashboard** (`/dashboard`).
-5. Submit a decision via **Admin Decision** (`/admin-decision-page`).
+### Voice Navigation
+- **Web Speech API**: Browser-native speech recognition
+- **Fuzzy Matching**: Intelligent command interpretation
+- **Multi-language Support**: Extensible for additional languages
+- **Accessibility**: Hands-free operation for improved UX
 
-## Models & Assets
+## 📊 Models & Data Assets
 
-This repo includes trained models and datasets used by the modules:
+Pre-trained models and datasets included:
 
-- `Anomaly_Detection/isolation_forest_model.pkl`
-- `Duplicate_Detection/duplicate_detection_pipeline_xgb.pkl`
-- `Fraud_Network_Analysis/fraud_network_model.pkl`
-- Large CSV datasets under each module directory.
+- **Anomaly Detection**: `isolation_forest_model.pkl`
+- **Duplicate Detection**: `duplicate_detection_pipeline_xgb.pkl`
+- **Fraud Network**: `fraud_network_model.pkl`
+- **Training Data**: Large CSV datasets (50k+ samples each)
+- **Network Cache**: `graph_cache.pkl` for performance
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
-- **spaCy model missing**
-  - Run: `python -m spacy download en_core_web_sm`
+### Common Issues
+- **spaCy Model Missing** → Run: `python -m spacy download en_core_web_sm`
+- **OpenAI API Errors** → Check API key and rate limits
+- **Voice Recognition Not Working** → Ensure HTTPS or localhost, check browser permissions
+- **Large Initial Load** → Fraud network builds graphs on first run (may take time)
+- **Memory Issues** → Reduce batch sizes in configuration if needed
 
-- **Large first-time fraud network load**
-  - Fraud network builds a graph (or loads `graph_cache.pkl`). First run may be slower.
+### Performance Tips
+- Use the cached network graphs for faster subsequent runs
+- Process documents in smaller batches for memory efficiency
+- Voice commands work best in quiet environments
 
-## License
+## 🤝 Contributing
 
-See `LICENSE`.
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make changes and test thoroughly
+4. Commit with descriptive messages
+5. Push to your fork and create a Pull Request
+
+## 📄 License
+
+See `LICENSE` file for details.
+
+## 🙏 Acknowledgments
+
+- Built with FastAPI, Flask, and modern web technologies
+- Powered by OpenAI GPT and LangChain
+- ML models trained on comprehensive welfare datasets
+- Voice navigation using Web Speech API
+
+---
+
+**Prayatna** - *Committed to transparent and efficient welfare fraud detection* 🛡️
