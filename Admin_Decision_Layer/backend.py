@@ -1,12 +1,9 @@
-from flask import Flask, jsonify, request, Response, send_file
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import json
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-import time
-import io
-import gtts
 
 # LangChain
 from langchain_openai import ChatOpenAI
@@ -22,13 +19,23 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_API_BASE = os.getenv("OPENAI_API_BASE", "https://openrouter.ai/api/v1")
 
 llm = ChatOpenAI(
-    model="openai/gpt-oss-20b:free",
+    model="openai/gpt-oss-20b:free",  # Valid free model
     temperature=0,
     api_key=OPENAI_API_KEY,
     base_url=OPENAI_API_BASE,
 )
 
 DATA_FILE = 'admin_decisions.json'
+
+def clean_json_response(text):
+    """Remove markdown code blocks from JSON response"""
+    if text.startswith('```json'):
+        text = text[7:]  # Remove ```json
+    if text.startswith('```'):
+        text = text[3:]  # Remove ```
+    if text.endswith('```'):
+        text = text[:-3]  # Remove ```
+    return text.strip()
 
 def load_decisions():
     if os.path.exists(DATA_FILE):
@@ -40,13 +47,24 @@ def save_decisions(data):
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=2)
 
-def clean_json_response(text):
-    """Remove markdown code blocks from JSON response"""
-    if text.startswith('```json'):
-        text = text[7:]  # Remove ```json
-    if text.endswith('```'):
-        text = text[:-3]  # Remove ```
-    return text.strip()
+def final_risk_score(case_data):
+    """Calculate risk score based on suspicious patterns"""
+    risk_score = (
+        case_data.get('bank_shared_count', 0) * 0.4 +
+        case_data.get('phone_shared_count', 0) * 0.3 +
+        case_data.get('registrations_per_aadhaar', 0) * 0.2 +
+        case_data.get('agent_cluster_size', 0) * 0.1
+    )
+    
+    return {
+        'risk_score': min(risk_score, 10),
+        'risk_level': 'High' if risk_score > 7 else 'Medium' if risk_score > 4 else 'Low',
+        'factors': [
+            f"Bank shared count: {case_data.get('bank_shared_count', 0)}",
+            f"Phone shared count: {case_data.get('phone_shared_count', 0)}",
+            f"Registrations per Aadhaar: {case_data.get('registrations_per_aadhaar', 0)}"
+        ]
+    }
 
 # LangChain prompts
 explain_prompt = PromptTemplate(
@@ -116,73 +134,48 @@ def get_cases():
 def submit_decision():
     decision_data = request.json
     case_id = decision_data.get('case_id')
-    decision = decision_data.get('decision')  # 'approve', 'reject', 'frozen', 'interview_scheduled', etc.
+    decision = decision_data.get('decision')  # 'approve' or 'reject'
     notes = decision_data.get('notes', '')
-    ai_analysis = decision_data.get('ai_analysis', None)
-    automated_action = decision_data.get('automated_action', False)
-
+    
     data = load_decisions()
-
-    # For AI agent actions, create a new case if it doesn't exist
-    if automated_action and case_id.startswith(('AI_AGENT_', 'AUTO_')):
-        new_case = {
-            'id': case_id,
-            'beneficiary_id': decision_data.get('beneficiary_id', case_id),
-            'prediction': f'AI Agent Action: {decision.replace("_", " ").title()}',
-            'status': 'ai_action_taken',
-            'ai_analysis': ai_analysis,
-            'automated_action': True,
-            'action_type': decision,
-            'timestamp': datetime.now().isoformat()
-        }
-        data['cases'].append(new_case)
-
-    # Add to audit with AI agent information
+    
+    # Add to audit
     audit_entry = {
         'case_id': case_id,
         'decision': decision,
         'notes': notes,
         'timestamp': datetime.now().isoformat(),
-        'admin': 'AI_AGENT' if automated_action else 'admin_user',
-        'ai_analysis': ai_analysis,
-        'automated_action': automated_action
+        'admin': 'admin_user'  # Placeholder
     }
     data['audit'].append(audit_entry)
-
-    # Update case status if case exists
+    
+    # Update case status
     for case in data['cases']:
         if case['id'] == case_id:
             case['status'] = decision
             case['notes'] = notes
-            case['ai_analysis'] = ai_analysis
-            case['automated_action'] = automated_action
-            case['last_updated'] = datetime.now().isoformat()
             break
-
+    
     save_decisions(data)
-
-    response_data = {
-        'status': 'success',
-        'automated_action': automated_action,
-        'case_id': case_id,
-        'decision': decision
-    }
-
-    if automated_action:
-        response_data['message'] = f'AI Agent successfully executed: {decision.replace("_", " ").title()}'
-
-    return jsonify(response_data)
+    return jsonify({'status': 'success'})
 
 @app.route('/audit')
 def get_audit():
     data = load_decisions()
     return jsonify(data['audit'])
 
-def analyze_agentic(data):
-    print("Agentic analyze called with data:", data)
-
+@app.route('/agentic-reasoning/analyze', methods=['POST'])
+def agentic_analyze():
     try:
-        # Decide mode based on payload shape
+        data = request.json
+        
+        # Check if API key is available
+        if not OPENAI_API_KEY:
+            return jsonify({
+                'error': 'OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.',
+                'error_type': 'ConfigurationError'
+            }), 500
+        
         if 'case_data' in data:
             # Standalone mode (from agentic page)
             nlp = "Not available (standalone mode)"
@@ -195,237 +188,67 @@ def analyze_agentic(data):
             anomaly = json.dumps(data.get('anomaly_detection', {}))
             duplicate = json.dumps(data.get('duplicate_detection', {}))
             fraud = json.dumps(data.get('fraud_network_analysis', {}))
-
-        print("Data prepared for LLM:")
-        print(f"NLP: {nlp[:200]}...")
-        print(f"Anomaly: {anomaly[:200]}...")
-        print(f"Duplicate: {duplicate[:200]}...")
-        print(f"Fraud: {fraud[:200]}...")
-
+        
         # Generate explanation
-        print("Generating explanation...")
-        explain_chain = explain_prompt | llm
-        explanation_result = explain_chain.invoke({
-            "nlp": nlp,
-            "anomaly": anomaly,
-            "duplicate": duplicate,
-            "fraud": fraud
-        })
-        explanation_raw = explanation_result.content
-        explanation_raw = clean_json_response(explanation_raw)
-        print(f"Raw explanation response: {explanation_raw[:300]}...")
-
+        explanation_prompt_formatted = explain_prompt.format(nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud)
+        explanation_result = llm.invoke([{"role": "user", "content": explanation_prompt_formatted}])
+        explanation_raw = clean_json_response(explanation_result.content)
+        
         try:
             explanation_data = json.loads(explanation_raw)
-            print("Parsed explanation data:", explanation_data)
-        except json.JSONDecodeError as e:
-            print(f"Failed to parse explanation JSON: {e}")
+        except json.JSONDecodeError:
             explanation_data = {'summary': explanation_raw, 'key_points': []}
-            print("Failed to parse explanation, using fallback:", explanation_data)
-
+        
         # Generate audit summary
-        print("Generating audit summary...")
-        audit_chain = audit_prompt | llm
-        audit_result = audit_chain.invoke({
-            "nlp": nlp,
-            "anomaly": anomaly,
-            "duplicate": duplicate,
-            "fraud": fraud,
-            "explanation": json.dumps(explanation_data)
-        })
-        audit_raw = audit_result.content
-        audit_raw = clean_json_response(audit_raw)
-        print(f"Raw audit response: {audit_raw[:300]}...")
-
+        audit_prompt_formatted = audit_prompt.format(nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud, explanation=json.dumps(explanation_data))
+        audit_result = llm.invoke([{"role": "user", "content": audit_prompt_formatted}])
+        audit_raw = clean_json_response(audit_result.content)
+        
         try:
             audit_data = json.loads(audit_raw)
-            print("Parsed audit data:", audit_data)
-        except json.JSONDecodeError as e:
-            print(f"Failed to parse audit JSON: {e}")
-            audit_data = {
-                'case_overview': audit_raw,
-                'key_fraud_indicators': [],
-                'evidence_summary': '',
-                'recommended_action': ''
-            }
-            print("Failed to parse audit, using fallback:", audit_data)
-
-        result = {
+        except json.JSONDecodeError:
+            audit_data = {'case_overview': audit_raw, 'key_fraud_indicators': [], 'evidence_summary': '', 'recommended_action': ''}
+        
+        return jsonify({
             'explanation': explanation_data,
             'audit_summary': audit_data
-        }
-        print("Returning data:", result)
-        return result
-
+        })
+        
     except Exception as e:
-        # Catch any LLM / prompt / network errors so the pipeline
-        # does not crash with a 500. Caller will turn this into 400.
-        error_msg = f"Agentic reasoning failed: {str(e)}"
-        print(error_msg)
-        print(f"Full error details: {e.__class__.__name__}: {str(e)}")
-        import traceback
-        traceback.print_exc()
-
-        # Check for specific error types and provide user-friendly messages
-        if hasattr(e, 'status_code') and e.status_code == 429:
-            error_msg = "AI service rate limit exceeded. The free tier has been reached (50 requests per day). To continue using advanced AI features, please consider: 1) Adding credits to your OpenRouter account, or 2) Switching to a different AI provider in the configuration."
-        elif "RateLimitError" in str(type(e)):
-            error_msg = "AI service rate limit exceeded. Please wait a few minutes before trying again, or upgrade your API plan for higher limits."
-        elif "AuthenticationError" in str(type(e)) or "APIError" in str(type(e)):
-            error_msg = "AI service authentication failed. Please check your API key configuration."
+        # Handle specific errors
+        error_msg = str(e)
+        if "AuthenticationError" in str(type(e)) or "401" in error_msg:
+            return jsonify({
+                'error': 'AI service authentication failed. Please check your OpenRouter API key configuration.',
+                'error_type': 'AuthenticationError',
+                'details': str(e)
+            }), 500
+        elif "RateLimitError" in str(type(e)) or "429" in error_msg:
+            return jsonify({
+                'error': 'AI service rate limit exceeded. Please try again later or upgrade your plan.',
+                'error_type': 'RateLimitError'
+            }), 500
         elif "APIConnectionError" in str(type(e)):
-            error_msg = "Unable to connect to AI service. Please check your internet connection and try again."
+            return jsonify({
+                'error': 'Unable to connect to AI service. Please check your internet connection.',
+                'error_type': 'ConnectionError'
+            }), 500
         else:
-            error_msg = f"AI reasoning temporarily unavailable: {str(e)}"
+            return jsonify({
+                'error': f'An unexpected error occurred: {error_msg}',
+                'error_type': type(e).__name__
+            }), 500
 
-        return {'error': error_msg, 'error_type': e.__class__.__name__}
-
-@app.route('/agentic-reasoning/analyze', methods=['POST'])
-def agentic_analyze():
-    data = request.json
-    return jsonify(analyze_agentic(data))
-
-@app.route('/agentic-stream')
-def agentic_stream():
-    data_str = request.args.get('data')
-    if not data_str:
-        return Response('data: {"error": "No data provided"}\n\n', mimetype='text/event-stream')
-
-    try:
-        data = json.loads(data_str)
-    except json.JSONDecodeError:
-        return Response('data: {"error": "Invalid data"}\n\n', mimetype='text/event-stream')
-
-    def generate():
-        try:
-            # Decide mode
-            if 'case_data' in data:
-                nlp = "Not available (standalone mode)"
-                anomaly = "Not available (standalone mode)"
-                duplicate = "Not available (standalone mode)"
-                fraud = json.dumps(data['case_data'])
-            else:
-                nlp = json.dumps(data.get('nlp_extraction', {}))
-                anomaly = json.dumps(data.get('anomaly_detection', {}))
-                duplicate = json.dumps(data.get('duplicate_detection', {}))
-                fraud = json.dumps(data.get('fraud_network_analysis', {}))
-
-            # Generate explanation
-            explanation_prompt_formatted = explain_prompt.format(
-                nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud
-            )
-            explanation_raw = llm.invoke([{"role": "user", "content": explanation_prompt_formatted}]).content
-            explanation_raw = clean_json_response(explanation_raw)
-
-            try:
-                explanation_data = json.loads(explanation_raw)
-                explanation_text = explanation_data.get('summary', explanation_raw) + ' ' + ' '.join(explanation_data.get('key_points', []))
-            except json.JSONDecodeError:
-                explanation_text = explanation_raw
-
-            # Stream explanation word by word
-            words = explanation_text.split()
-            for word in words:
-                yield f'data: {{"type": "explanation", "text": "{word} "}}\n\n'
-                time.sleep(0.05)  # simulate real-time
-
-            # Generate audit summary
-            audit_prompt_formatted = audit_prompt.format(
-                nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud, explanation=json.dumps(explanation_data)
-            )
-            audit_raw = llm.invoke([{"role": "user", "content": audit_prompt_formatted}]).content
-            audit_raw = clean_json_response(audit_raw)
-
-            try:
-                audit_data = json.loads(audit_raw)
-                audit_text = audit_data.get('case_overview', '') + ' ' + ' '.join(audit_data.get('key_fraud_indicators', [])) + ' ' + audit_data.get('evidence_summary', '') + ' ' + audit_data.get('recommended_action', '')
-            except json.JSONDecodeError:
-                audit_text = audit_raw
-
-            # Stream audit word by word
-            words = audit_text.split()
-            for word in words:
-                yield f'data: {{"type": "audit", "text": "{word} "}}\n\n'
-                time.sleep(0.05)
-
-            yield 'data: {"type": "end"}\n\n'
-
-        except Exception as e:
-            yield f'data: {{"error": "{str(e)}"}}\n\n'
-
-    return Response(generate(), mimetype='text/event-stream')
-
-@app.route('/generate-audio')
-def generate_audio():
-    text = request.args.get('text')
-    if not text:
-        return 'No text provided', 400
-
-    try:
-        tts = gtts.gTTS(text)
-        buffer = io.BytesIO()
-        tts.write_to_fp(buffer)
-        buffer.seek(0)
-        return send_file(buffer, mimetype='audio/mpeg')
-    except Exception as e:
-        return str(e), 500
-
-# Mock some cases for demo and AI agent actions
-@app.route('/init-cases', methods=['GET', 'POST'])
+# Mock some cases for demo
+@app.route('/init-cases')
 def init_cases():
     data = load_decisions()
-
-    # If POST request with AI agent data
-    if request.method == 'POST':
-        agent_data = request.json
-        beneficiary_id = agent_data.get('beneficiary_id')
-        priority = agent_data.get('priority', 'normal')
-        ai_analysis = agent_data.get('ai_analysis', {})
-
-        # Create AI agent initiated investigation case
-        new_case = {
-            'id': f'AI_INVESTIGATION_{datetime.now().strftime("%Y%m%d_%H%M%S")}',
-            'beneficiary_id': beneficiary_id,
-            'prediction': 'AI Agent Investigation Initiated',
-            'status': 'under_investigation',
-            'ai_analysis': ai_analysis,
-            'priority': priority,
-            'automated_action': True,
-            'initiated_by': 'AI_AGENT',
-            'timestamp': datetime.now().isoformat()
-        }
-
-        data['cases'].append(new_case)
-
-        # Add to audit
-        audit_entry = {
-            'case_id': new_case['id'],
-            'decision': 'investigation_initiated',
-            'notes': f'AI Agent initiated investigation for beneficiary {beneficiary_id} with priority {priority}',
-            'timestamp': datetime.now().isoformat(),
-            'admin': 'AI_AGENT',
-            'ai_analysis': ai_analysis,
-            'automated_action': True
-        }
-        data['audit'].append(audit_entry)
-
-        save_decisions(data)
-
-        return jsonify({
-            'status': 'investigation_initiated',
-            'case_id': new_case['id'],
-            'beneficiary_id': beneficiary_id,
-            'message': f'AI Agent investigation initiated for beneficiary {beneficiary_id}'
-        })
-
-    # GET request - initialize demo cases if none exist
     if not data['cases']:
         data['cases'] = [
             {'id': '1', 'beneficiary_id': 'BEN10458932', 'prediction': 'Anomaly Detected', 'status': 'pending', 'anomaly_score': 0.85, 'fraud_probability': 85},
             {'id': '2', 'beneficiary_id': 'BEN20567890', 'prediction': 'Duplicate Suspected', 'status': 'pending', 'duplicate_risk': 75, 'fraud_probability': 60}
         ]
         save_decisions(data)
-
     return jsonify({'status': 'initialized'})
 
 if __name__ == '__main__':
