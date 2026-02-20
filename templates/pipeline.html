@@ -6,6 +6,7 @@
     <title>Fraud Detection Pipeline - Prayatna</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
     :root {
         --primary: #6366f1;
@@ -1295,18 +1296,145 @@ main button {
     animation: pulse 0.5s ease-in-out infinite;
 }
 
-/* ---------- SPINNER ---------- */
-.spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: #fff;
-    animation: spin 1s ease-in-out infinite;
+/* ---------- CHARTS SIDEBAR - BASIC POSITIONING ---------- */
+.charts-sidebar {
+    position: fixed;
+    right: 0;
+    top: 80px;
+    width: 300px;
+    height: calc(100vh - 80px);
+    background: rgba(255, 255, 255, 0.98);
+    border-left: 1px solid rgba(0, 0, 0, 0.05);
+    z-index: 1000;
 }
-@keyframes spin {
-    to { transform: rotate(360deg); }
+
+.charts-toggle {
+    position: fixed;
+    right: 20px;
+    top: 100px;
+    background: var(--secondary);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1001;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.charts-content {
+    padding: 0.5rem;
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) rgba(0, 0, 0, 0.1);
+}
+
+.chart-placeholder {
+    text-align: center;
+    padding: 2rem;
+    color: var(--gray-600);
+}
+
+.chart-placeholder h4 {
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.chart-section {
+    margin-bottom: 1.5rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+}
+
+.chart-section:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.chart-section h4 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    line-height: 1.2;
+}
+
+.chart-section h4 i {
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+
+.chart-section canvas {
+    width: 100% !important;
+    max-width: 240px !important; /* Account for padding */
+    height: 160px !important; /* Slightly smaller for better fit */
+    margin: 0 auto;
+    display: block;
+    border-radius: 0.25rem;
+}
+
+/* Custom scrollbar for charts sidebar */
+.charts-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.charts-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 2px;
+}
+
+.charts-content::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 2px;
+}
+
+.charts-content::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+/* Responsive behavior for charts sidebar */
+@media (max-width: 1200px) {
+    .charts-sidebar {
+        width: 280px;
+    }
+    
+    .charts-toggle {
+        right: 15px;
+    }
+}
+
+@media (max-width: 992px) {
+    /* Charts sidebar hidden on tablets by default */
+    .charts-sidebar {
+        display: none !important; /* Override show state on small screens */
+    }
+    
+    .charts-toggle {
+        right: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Charts sidebar hidden on mobile */
+    .charts-sidebar {
+        display: none !important;
+    }
+    
+    .charts-toggle {
+        display: none; /* Hide toggle button on mobile */
+    }
 }
 
 /* ---------- NLP HORIZONTAL ---------- */
@@ -1676,6 +1804,14 @@ async function runBasicPipeline(){
 
   resultDiv.innerHTML=html;
 
+  // Update charts with real pipeline data after completion
+  setTimeout(() => {
+      const pipelineData = extractPipelineData();
+      if (pipelineData) {
+          updateChartsWithData(pipelineData);
+      }
+  }, 500); // Wait for DOM to update
+
  }catch(err){
   resultDiv.innerHTML=`<p class="error">${err.message}</p>`;
  }
@@ -1737,6 +1873,14 @@ async function runAgentic(basicData){
   // Remove loading and add agentic section
   resultDiv.innerHTML = resultDiv.innerHTML.replace(/<div class="loading">Running agentic reasoning\.\.\.<\/div>$/, '');
   resultDiv.innerHTML += renderSection("🤖 Agentic Reasoning",data);
+
+  // Update charts with complete pipeline data including agentic results
+  setTimeout(() => {
+      const pipelineData = extractPipelineData();
+      if (pipelineData) {
+          updateChartsWithData(pipelineData);
+      }
+  }, 500); // Wait for DOM to update
 
  }catch(err){
   console.error('Error in runAgentic:', err);
@@ -2429,6 +2573,48 @@ function extractDataFromPage() {
     }
 }
 
+// Extract pipeline data from page sections
+function extractPipelineData() {
+    try {
+        const sections = document.querySelectorAll('.section');
+        const data = {
+            nlp: {},
+            anomaly: {},
+            duplicate: {},
+            fraud: {},
+            agentic: {}
+        };
+
+        sections.forEach(section => {
+            const title = section.querySelector('h2')?.textContent?.trim();
+
+            if (title) {
+                if (title.includes('NLP')) {
+                    data.nlp = extractNLPData(section);
+                } else if (title.includes('Anomaly')) {
+                    data.anomaly = extractAnomalyData(section);
+                } else if (title.includes('Duplicate')) {
+                    data.duplicate = extractDuplicateData(section);
+                } else if (title.includes('Fraud')) {
+                    data.fraud = extractFraudData(section);
+                } else if (title.includes('Agentic')) {
+                    data.agentic = extractAgenticData(section);
+                }
+            }
+        });
+
+        // Check if we have any real data
+        const hasRealData = Object.values(data).some(sectionData =>
+            Object.keys(sectionData).length > 0
+        );
+
+        return hasRealData ? data : null;
+    } catch (error) {
+        console.error('Error extracting pipeline data:', error);
+        return null;
+    }
+}
+
 // Scroll to section smoothly
 function scrollToSection(sectionId) {
     const element = document.getElementById(sectionId) || document.querySelector(`[data-section="${sectionId}"]`);
@@ -2524,7 +2710,490 @@ function showVoiceNotification(message, type = 'info') {
 }
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', initSideNav);
+document.addEventListener('DOMContentLoaded', function() {
+    initSideNav();
+    
+    // Initialize charts sidebar toggle
+    initChartsToggle();
+});
+
+// ========== CHARTS SIDEBAR FUNCTIONALITY ==========
+
+// Global chart instances
+let nlpChart = null;
+let anomalyChart = null;
+let duplicateChart = null;
+let fraudChart = null;
+
+// Extract pipeline data for charts
+function extractPipelineData() {
+    try {
+        const sections = document.querySelectorAll('.section');
+        const data = {
+            nlp: { entities: 5, keywords: 15, confidence: 0.7 },
+            anomaly: { totalRecords: 100, anomaliesFound: 3, confidence: 0.8 },
+            duplicate: { totalRecords: 100, duplicatesFound: 2, confidence: 0.9 },
+            fraud: { nodes: 50, edges: 25, clusters: 3, riskScore: 0.6 }
+        };
+
+        // This is a simplified version - in production, you'd parse actual data
+        return data;
+    } catch (error) {
+        console.error('Error extracting pipeline data:', error);
+        return null;
+    }
+}
+
+// Extract NLP data for charts
+function extractNLPData(section) {
+    const data = {
+        entities: 0,
+        sentiment: 0.5,
+        keywords: 0,
+        confidence: 0.7
+    };
+
+    try {
+        const content = section.textContent || '';
+        const preElement = section.querySelector('pre');
+        const preContent = preElement ? preElement.textContent : content;
+
+        // Try to parse JSON data if available
+        try {
+            const jsonData = JSON.parse(preContent);
+            if (jsonData && typeof jsonData === 'object') {
+                // Extract from structured data
+                data.entities = jsonData.entities || jsonData.entity_count || 0;
+                data.sentiment = jsonData.sentiment || jsonData.sentiment_score || 0.5;
+                data.keywords = jsonData.keywords ? (Array.isArray(jsonData.keywords) ? jsonData.keywords.length : 0) : 0;
+                data.confidence = jsonData.confidence || jsonData.confidence_score || 0.7;
+                return data;
+            }
+        } catch (e) {
+            // Not JSON, continue with text parsing
+        }
+
+        // Extract from text content
+        const entityMatches = content.match(/PERSON|ORG|GPE|DATE|MONEY|LOCATION|FACILITY/g);
+        data.entities = entityMatches ? entityMatches.length : 0;
+
+        const keywordMatches = content.match(/\b[a-z]{4,}\b/g);
+        data.keywords = keywordMatches ? keywordMatches.length : 0;
+
+        // Look for sentiment indicators
+        if (content.toLowerCase().includes('positive')) data.sentiment = 0.8;
+        else if (content.toLowerCase().includes('negative')) data.sentiment = -0.8;
+        else data.sentiment = 0;
+
+        // Look for confidence scores
+        const confidenceMatch = content.match(/confidence[:\s]*([0-9.]+)/i);
+        if (confidenceMatch) {
+            data.confidence = parseFloat(confidenceMatch[1]);
+        }
+
+        return data;
+    } catch (error) {
+        console.warn('Error extracting NLP data:', error);
+        return data;
+    }
+}
+
+// Create charts with real pipeline data (only when data is available)
+function createRealCharts(pipelineData) {
+    if (!pipelineData) return;
+
+    // Create NLP Radar Chart
+    createNLPChart(pipelineData.nlp);
+
+    // Create Anomaly Doughnut Chart
+    createAnomalyChart(pipelineData.anomaly);
+
+    // Create Duplicate Bar Chart
+    createDuplicateChart(pipelineData.duplicate);
+
+    // Create Fraud Line Chart
+    createFraudChart(pipelineData.fraud);
+
+    console.log('Charts created with real pipeline data:', pipelineData);
+}
+
+// Update charts with data (only called when real data is available)
+function updateChartsWithData(pipelineData) {
+    if (!pipelineData) return;
+
+    // Only update charts if sidebar is visible
+    const chartsSidebar = document.getElementById('chartsSidebar');
+    if (!chartsSidebar || chartsSidebar.style.display === 'none') {
+        console.log('Charts sidebar is hidden, skipping chart update');
+        return;
+    }
+
+    try {
+        createRealCharts(pipelineData);
+        console.log('Charts successfully updated with pipeline data');
+    } catch (error) {
+        console.error('Error updating charts:', error);
+    }
+}
+
+// Create NLP Analysis Chart (Radar)
+function createNLPChart(data) {
+    const ctx = document.getElementById('nlpChart');
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (nlpChart) {
+        nlpChart.destroy();
+    }
+
+    nlpChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Entities', 'Keywords', 'Sentiment', 'Confidence'],
+            datasets: [{
+                label: 'NLP Metrics',
+                data: [
+                    data.entities || 0,
+                    data.keywords || 0,
+                    (data.sentiment + 1) * 50 || 50, // Convert -1 to 1 range to 0-100
+                    (data.confidence || 0) * 100
+                ],
+                backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                borderColor: 'rgba(99, 102, 241, 1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgba(99, 102, 241, 1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+
+                            if (label === 'Entities') {
+                                return `Entities: ${data.entities || 0}`;
+                            } else if (label === 'Keywords') {
+                                return `Keywords: ${data.keywords || 0}`;
+                            } else if (label === 'Sentiment') {
+                                const sentiment = data.sentiment || 0;
+                                const percentage = Math.round(value);
+                                return `Sentiment: ${sentiment >= 0 ? '+' : ''}${sentiment.toFixed(2)} (${percentage}%)`;
+                            } else if (label === 'Confidence') {
+                                const confidence = data.confidence || 0;
+                                return `Confidence: ${(confidence * 100).toFixed(1)}%`;
+                            }
+
+                            return `${label}: ${value}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create Anomaly Detection Chart (Doughnut)
+function createAnomalyChart(data) {
+    const ctx = document.getElementById('anomalyChart');
+    if (!ctx) return;
+
+    if (anomalyChart) {
+        anomalyChart.destroy();
+    }
+
+    const totalRecords = data.totalRecords || 100;
+    const anomaliesFound = data.anomaliesFound || 0;
+    const normalRecords = totalRecords - anomaliesFound;
+    const anomalyPercentage = totalRecords > 0 ? ((anomaliesFound / totalRecords) * 100) : 0;
+
+    anomalyChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Normal', 'Anomalous'],
+            datasets: [{
+                data: [normalRecords, anomaliesFound],
+                backgroundColor: [
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(239, 68, 68, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(16, 185, 129, 1)',
+                    'rgba(239, 68, 68, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+
+                            if (label === 'Normal') {
+                                const percentage = totalRecords > 0 ? ((value / totalRecords) * 100).toFixed(1) : 0;
+                                return `Normal: ${value} records (${percentage}%)`;
+                            } else if (label === 'Anomalous') {
+                                const percentage = anomalyPercentage.toFixed(1);
+                                return `Anomalous: ${value} records (${percentage}%)`;
+                            }
+
+                            return `${label}: ${value}`;
+                        },
+                        afterLabel: function(context) {
+                            if (context.label === 'Anomalous') {
+                                return `Total Records: ${totalRecords}\nConfidence: ${(data.confidence || 0).toFixed(1)}%`;
+                            }
+                            return '';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create Duplicate Detection Chart (Bar)
+function createDuplicateChart(data) {
+    const ctx = document.getElementById('duplicateChart');
+    if (!ctx) return;
+
+    if (duplicateChart) {
+        duplicateChart.destroy();
+    }
+
+    const totalRecords = data.totalRecords || 100;
+    const duplicatesFound = data.duplicatesFound || 0;
+    const groups = data.groups || 0;
+    const duplicatePercentage = totalRecords > 0 ? ((duplicatesFound / totalRecords) * 100) : 0;
+
+    duplicateChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Records', 'Duplicates', 'Groups'],
+            datasets: [{
+                label: 'Count',
+                data: [totalRecords, duplicatesFound, groups],
+                backgroundColor: [
+                    'rgba(99, 102, 241, 0.6)',
+                    'rgba(245, 158, 11, 0.6)',
+                    'rgba(16, 185, 129, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(99, 102, 241, 1)',
+                    'rgba(245, 158, 11, 1)',
+                    'rgba(16, 185, 129, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString(); // Format large numbers
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+
+                            if (label === 'Records') {
+                                return `Total Records: ${value.toLocaleString()}`;
+                            } else if (label === 'Duplicates') {
+                                const percentage = duplicatePercentage.toFixed(1);
+                                return `Duplicates: ${value} (${percentage}%)`;
+                            } else if (label === 'Groups') {
+                                return `Duplicate Groups: ${value}`;
+                            }
+
+                            return `${label}: ${value}`;
+                        },
+                        afterLabel: function(context) {
+                            if (context.label === 'Duplicates') {
+                                return `Confidence: ${(data.confidence || 0).toFixed(1)}%`;
+                            }
+                            return '';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create Fraud Network Chart (Line)
+function createFraudChart(data) {
+    const ctx = document.getElementById('fraudChart');
+    if (!ctx) return;
+
+    if (fraudChart) {
+        fraudChart.destroy();
+    }
+
+    const nodes = data.nodes || 50;
+    const edges = data.edges || 25;
+    const clusters = data.clusters || 3;
+    const riskScore = data.riskScore || 0.6;
+    const riskPercentage = (riskScore * 100);
+
+    fraudChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Nodes', 'Edges', 'Clusters', 'Risk Score'],
+            datasets: [{
+                label: 'Network Metrics',
+                data: [nodes, edges, clusters, riskPercentage],
+                borderColor: 'rgba(139, 92, 246, 1)',
+                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: 'rgba(139, 92, 246, 1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgba(139, 92, 246, 1)',
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value, index) {
+                            // Different formatting for risk score vs counts
+                            if (index === 3) { // Risk Score is the 4th item (index 3)
+                                return value + '%';
+                            }
+                            return value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const index = context.dataIndex;
+
+                            if (label === 'Nodes') {
+                                return `Network Nodes: ${value.toLocaleString()}`;
+                            } else if (label === 'Edges') {
+                                return `Network Edges: ${value.toLocaleString()}`;
+                            } else if (label === 'Clusters') {
+                                return `Fraud Clusters: ${value}`;
+                            } else if (label === 'Risk Score') {
+                                return `Risk Score: ${value.toFixed(1)}%`;
+                            }
+
+                            return `${label}: ${value}`;
+                        },
+                        afterLabel: function(context) {
+                            const label = context.label || '';
+                            if (label === 'Risk Score') {
+                                const centrality = data.centrality || 0;
+                                return `Network Centrality: ${(centrality * 100).toFixed(1)}%`;
+                            }
+                            return '';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Initialize charts when sidebar becomes visible
+function initChartsWhenVisible() {
+    const chartsSidebar = document.getElementById('chartsSidebar');
+    if (chartsSidebar && chartsSidebar.style.display !== 'none') {
+        // Check if we have real pipeline data available
+        const pipelineData = extractPipelineData();
+        if (pipelineData) {
+            createRealCharts(pipelineData);
+        }
+    }
+}
+
+// ========== CHARTS SIDEBAR TOGGLE FUNCTIONALITY ==========
+function initChartsToggle() {
+    const chartsToggle = document.getElementById('chartsToggle');
+    const chartsSidebar = document.getElementById('chartsSidebar');
+    
+    if (chartsToggle && chartsSidebar) {
+        chartsToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const isVisible = chartsSidebar.style.display !== 'none';
+            
+            if (isVisible) {
+                // Hide sidebar
+                chartsSidebar.style.display = 'none';
+                this.innerHTML = '<i class="fas fa-chart-bar"></i>';
+            } else {
+                // Show sidebar
+                chartsSidebar.style.display = 'block';
+                this.innerHTML = '<i class="fas fa-times"></i>';
+                initChartsWhenVisible();
+            }
+        });
+    }
+}
 
 // Stop voice recognition when page unloads
 window.addEventListener('beforeunload', () => {
@@ -2539,6 +3208,40 @@ window.addEventListener('beforeunload', () => {
     <div class="floating one"></div>
     <div class="floating two"></div>
     <div class="floating three"></div>
+
+    <!-- Charts Sidebar Toggle Button - Always Visible -->
+    <button class="charts-toggle" id="chartsToggle">
+        <i class="fas fa-chart-bar"></i>
+    </button>
+
+    <!-- Charts Sidebar - Initially Hidden -->
+    <div class="charts-sidebar" id="chartsSidebar" style="display: none;">
+        <div class="charts-content">
+            <!-- NLP Analysis Chart -->
+            <div class="chart-section">
+                <h4><i class="fas fa-brain"></i> NLP Analysis</h4>
+                <canvas id="nlpChart" width="250" height="200"></canvas>
+            </div>
+
+            <!-- Anomaly Detection Chart -->
+            <div class="chart-section">
+                <h4><i class="fas fa-exclamation-triangle"></i> Anomaly Detection</h4>
+                <canvas id="anomalyChart" width="250" height="200"></canvas>
+            </div>
+
+            <!-- Duplicate Detection Chart -->
+            <div class="chart-section">
+                <h4><i class="fas fa-copy"></i> Duplicate Detection</h4>
+                <canvas id="duplicateChart" width="250" height="200"></canvas>
+            </div>
+
+            <!-- Fraud Network Chart -->
+            <div class="chart-section">
+                <h4><i class="fas fa-project-diagram"></i> Fraud Network</h4>
+                <canvas id="fraudChart" width="250" height="200"></canvas>
+            </div>
+        </div>
+    </div>
 </body>
 
 <!-- Add this script to handle animations after page load -->

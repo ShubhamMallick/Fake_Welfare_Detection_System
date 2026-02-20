@@ -5,151 +5,616 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fraud Detection Dashboard - Prayatna</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: #333;
-            min-height: 100vh;
-            animation: fadeIn 1s ease-in;
+    :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --secondary: #10b981;
+        --accent: #8b5cf6;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --success: #10b981;
+        --dark: #1e1b4b;
+        --light: #f8fafc;
+        --gray-100: #f1f5f9;
+        --gray-200: #e2e8f0;
+        --gray-300: #cbd5e1;
+        --gray-700: #334155;
+        
+        --glow: 0 0 15px rgba(99, 102, 241, 0.3);
+        --glow-hover: 0 0 25px rgba(99, 102, 241, 0.5);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        margin: 0;
+        background: linear-gradient(135deg, #f0f4ff 0%, #f0f9ff 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+        color: var(--dark);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        opacity: 0;
+        animation: fadeIn 0.8s ease-out forwards;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    body.animate::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 30%),
+            radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 30%),
+            radial-gradient(circle at 30% 50%, rgba(245, 158, 11, 0.15) 0%, transparent 45%);
+        pointer-events: none;
+        z-index: -2;
+        animation: gradientShift 25s ease infinite alternate;
+        filter: blur(40px);
+        opacity: 0;
+        transition: opacity 1s ease;
+    }
+
+    body::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            linear-gradient(135deg, rgba(240, 244, 255, 0.9) 0%, rgba(240, 249, 255, 0.9) 100%),
+            url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236366f1' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    @keyframes gradientShift {
+        0% { 
+            transform: scale(1) rotate(0deg) translate(0, 0);
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        33% {
+            transform: scale(1.05) rotate(1deg) translate(10px, 5px);
         }
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            animation: slideDown 0.8s ease-out;
+        66% {
+            transform: scale(1.1) rotate(-1deg) translate(-5px, 10px);
         }
-        @keyframes slideDown {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        100% { 
+            transform: scale(1.05) rotate(0.5deg) translate(5px, -5px);
         }
-        nav {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 10px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            animation: fadeIn 1.2s ease-in;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Floating elements */
+    .floating {
+        position: fixed;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: -1;
+        filter: blur(60px);
+        opacity: 0.7;
+        animation: float 20s ease-in-out infinite;
+        will-change: transform, opacity;
+    }
+
+    .floating.one {
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.5) 0%, transparent 70%);
+        top: 20%;
+        left: 10%;
+        animation-delay: 0s;
+        animation-duration: 25s;
+    }
+
+    .floating.two {
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, transparent 70%);
+        bottom: 10%;
+        right: 10%;
+        animation-delay: 2s;
+        animation-duration: 30s;
+    }
+
+    .floating.three {
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
+        top: 60%;
+        left: 20%;
+        animation-delay: 4s;
+        animation-duration: 35s;
+    }
+
+    @keyframes float {
+        0% { 
+            transform: translateY(0) rotate(0deg) scale(1);
+            opacity: 0.7;
         }
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: bold;
-            margin: 0 15px;
-            transition: all 0.3s ease;
-            padding: 5px 10px;
-            border-radius: 5px;
+        25% {
+            transform: translateY(-50px) rotate(5deg) scale(1.05);
+            opacity: 0.8;
         }
-        nav a:hover {
-            color: #ffd700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-            background: rgba(255, 215, 0, 0.1);
+        50% {
+            transform: translateY(20px) rotate(-5deg) scale(0.95);
+            opacity: 0.6;
         }
-        main {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-            animation: zoomIn 1s ease-out;
+        75% {
+            transform: translateY(-30px) rotate(3deg) scale(1.03);
+            opacity: 0.7;
         }
-        @keyframes zoomIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        100% { 
+            transform: translateY(0) rotate(0deg) scale(1);
+            opacity: 0.7;
         }
-        h1 {
-            color: #333;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-        @keyframes glow {
-            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
-            to { text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
-        }
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
-            animation: fadeInUp 1.5s ease-out;
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .stat {
-            text-align: center;
-            padding: 20px;
-            background: linear-gradient(45deg, #4facfe, #00f2fe);
-            color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
-            transition: transform 0.3s ease;
-        }
-        .stat:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.5);
-        }
+    }
+
+    /* Header and Navigation */
+    header {
+        text-align: center;
+        margin-bottom: 20px;
+        animation: slideDown 0.8s ease-out;
+        position: relative;
+        z-index: 10;
+    }
+    
+    @keyframes slideDown {
+        from { transform: translateY(-50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    nav {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        animation: fadeIn 1.2s ease-in;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    nav a {
+        color: var(--gray-700);
+        text-decoration: none;
+        font-weight: 600;
+        margin: 0 15px;
+        transition: var(--transition);
+        padding: 8px 16px;
+        border-radius: 8px;
+        display: inline-block;
+    }
+
+    nav a:hover {
+        color: var(--primary);
+        background: rgba(99, 102, 241, 0.1);
+        transform: translateY(-2px);
+    }
+
+    /* Main Content */
+    main {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 2.5rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        animation: zoomIn 1s ease-out;
+        position: relative;
+        z-index: 1;
+    }
+    
+    @keyframes zoomIn {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+        animation: gradientShift 15s ease infinite;
+    }
+
+    h2 {
+        font-size: 1.8rem;
+        color: var(--dark);
+        margin: 2rem 0 1.5rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    h2::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+        border-radius: 2px;
+    }
+
+    /* Stats Cards */
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0 3rem;
+        animation: fadeInUp 1.5s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stat {
+        text-align: center;
+        padding: 2rem 1.5rem;
+        background: white;
+        color: var(--dark);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: var(--transition);
+        border-left: 4px solid var(--primary);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), transparent);
+        z-index: 1;
+        opacity: 0;
+        transition: var(--transition);
+    }
+
+    .stat:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+    }
+
+    .stat:hover::before {
+        opacity: 1;
+    }
+
+    .stat h3 {
+        font-size: 1.1rem;
+        color: var(--gray-700);
+        margin: 0 0 1rem;
+        font-weight: 600;
+        position: relative;
+        z-index: 2;
+    }
+
+    .stat p {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin: 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Charts */
+    .charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 2rem;
+        animation: fadeIn 2s ease-in;
+    }
+
+    .chart-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .chart-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+        z-index: 1;
+        opacity: 0;
+        transition: var(--transition);
+    }
+
+    .chart-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .chart-container:hover::before {
+        opacity: 1;
+    }
+
+    .chart-container h3 {
+        font-size: 1.3rem;
+        color: var(--dark);
+        margin: 0 0 1.5rem;
+        font-weight: 600;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Cases Section */
+    .cases-section {
+        margin-top: 3rem;
+        animation: fadeIn 3s ease-in;
+    }
+
+    .cases-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .cases-table th, .cases-table td {
+        padding: 1rem 1.5rem;
+        text-align: left;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .cases-table th {
+        background: var(--gray-100);
+        color: var(--gray-700);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+    }
+
+    .cases-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .cases-table tbody tr:hover {
+        background: rgba(99, 102, 241, 0.03);
+    }
+
+    /* Footer */
+    footer {
+        text-align: center;
+        margin-top: 3rem;
+        font-size: 0.9em;
+        color: var(--gray-700);
+        animation: fadeIn 2.5s ease-in;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+    }
+
+    /* Badges */
+    .status-badge {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .status-pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+
+    .status-resolved {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+    }
+
+    .status-fraud {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+
+    .status-anomaly {
+        background: rgba(139, 92, 246, 0.1);
+        color: var(--accent);
+    }
+
+    .status-duplicate {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+
+    .prediction-badge {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary);
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .score-badge {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    /* Notifications */
+    .notification {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 400px;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 9999;
+        border-left: 4px solid var(--primary);
+    }
+    
+    .notification.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    
+    .notification.success {
+        border-left-color: var(--success);
+    }
+    
+    .notification.error {
+        border-left-color: var(--danger);
+    }
+    
+    .notification.warning {
+        border-left-color: var(--warning);
+    }
+    
+    .notification .notification-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .notification i {
+        font-size: 1.2rem;
+    }
+    
+    .notification.success i {
+        color: var(--success);
+    }
+    
+    .notification.error i {
+        color: var(--danger);
+    }
+    
+    .notification.warning i {
+        color: var(--warning);
+    }
+    
+    .notification .close-btn {
+        background: none;
+        border: none;
+        color: var(--gray-700);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: var(--transition);
+    }
+    
+    .notification .close-btn:hover {
+        background: var(--gray-100);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
         .charts {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            animation: fadeIn 2s ease-in;
+            grid-template-columns: 1fr;
         }
-        .chart-container {
-            flex: 1 1 45%;
-            min-width: 300px;
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: box-shadow 0.3s ease;
+        
+        main {
+            margin: 0 1.5rem;
+            padding: 2rem;
         }
-        .chart-container:hover {
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+
+    @media (max-width: 768px) {
+        .stats {
+            grid-template-columns: 1fr 1fr;
         }
-        .cases-section {
-            margin-top: 30px;
-            animation: fadeIn 3s ease-in;
+        
+        nav {
+            padding: 1rem;
         }
-        .cases-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        
+        h1 {
+            font-size: 2rem;
         }
-        .cases-table th, .cases-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
+        
+        h2 {
+            font-size: 1.5rem;
         }
-        .cases-table th {
-            background: #f8f9fa;
-            font-weight: bold;
+        
+        main {
+            margin: 0 1rem;
+            padding: 1.5rem;
         }
-        .cases-table tr:hover {
-            background: #f1f1f1;
+    }
+
+    @media (max-width: 480px) {
+        .stats {
+            grid-template-columns: 1fr;
         }
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: #fff;
-            animation: fadeIn 2.5s ease-in;
+        
+        .stat {
+            padding: 1.5rem 1rem;
         }
+        
+        .stat p {
+            font-size: 1.5rem;
+        }
+        
+        nav a {
+            display: block;
+            margin: 0.5rem 0;
+        }
+    }
     </style>
 </head>
 <body>
+    <!-- Floating Background Elements -->
+    <div class="floating one"></div>
+    <div class="floating two"></div>
+    <div class="floating three"></div>
+
     <header>
         <nav><a href="/">Home</a> | <a href="/choice">Back to Choice</a></nav>
         <h1>Fraud Detection Dashboard</h1>
@@ -187,6 +652,12 @@
     </footer>
 
     <script>
+    // Add animate class to body after load
+    document.addEventListener('DOMContentLoaded', function() {
+        document.body.classList.add('animate');
+        loadDashboard();
+    });
+
     async function loadDashboard() {
         try {
             // Auto-init cases
@@ -196,17 +667,47 @@
             const data = await response.json();
             console.log(data);
             
-            // Display stats
+            // Display stats with enhanced styling
             const statsDiv = document.getElementById('stats');
             statsDiv.innerHTML = `
-                <div class="stat"><h3>Total Cases</h3><p>${data.total_cases}</p></div>
-                <div class="stat"><h3>Anomalies</h3><p>${data.anomalies}</p></div>
-                <div class="stat"><h3>Duplicates</h3><p>${data.duplicates}</p></div>
-                <div class="stat"><h3>Frauds</h3><p>${data.frauds}</p></div>
-                <div class="stat"><h3>Agentic Reports</h3><p>${data.agentic_reports}</p></div>
+                <div class="stat">
+                    <h3><i class="fas fa-shield-alt"></i> Total Cases</h3>
+                    <p>${data.total_cases.toLocaleString()}</p>
+                </div>
+                <div class="stat">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Anomalies</h3>
+                    <p>${data.anomalies.toLocaleString()}</p>
+                </div>
+                <div class="stat">
+                    <h3><i class="fas fa-copy"></i> Duplicates</h3>
+                    <p>${data.duplicates.toLocaleString()}</p>
+                </div>
+                <div class="stat">
+                    <h3><i class="fas fa-user-secret"></i> Frauds</h3>
+                    <p>${data.frauds.toLocaleString()}</p>
+                </div>
+                <div class="stat">
+                    <h3><i class="fas fa-robot"></i> Agentic Reports</h3>
+                    <p>${data.agentic_reports.toLocaleString()}</p>
+                </div>
             `;
             
-            // Analysis Types Bar Chart
+            // Animate stats cards
+            const statCards = statsDiv.querySelectorAll('.stat');
+            statCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.5s ease ${index * 0.1}s, transform 0.5s ease ${index * 0.1}s`;
+                
+                // Trigger reflow
+                void card.offsetWidth;
+                
+                // Animate in
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            });
+            
+            // Analysis Types Bar Chart with enhanced styling
             const ctxAnalysis = document.getElementById('riskChart').getContext('2d');
             new Chart(ctxAnalysis, {
                 type: 'bar',
@@ -215,60 +716,251 @@
                     datasets: [{
                         label: 'Count',
                         data: [data.anomalies, data.duplicates, data.frauds, data.agentic_reports],
-                        backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56']
+                        backgroundColor: [
+                            'rgba(99, 102, 241, 0.8)',
+                            'rgba(239, 68, 68, 0.8)', 
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(16, 185, 129, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(99, 102, 241, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(16, 185, 129, 1)'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        hoverBackgroundColor: [
+                            'rgba(99, 102, 241, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(16, 185, 129, 1)'
+                        ]
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: true,
                     plugins: {
-                        title: {
-                            display: true,
-                            text: 'Analysis Results'
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 27, 75, 0.9)',
+                            titleFont: {
+                                family: 'Inter',
+                                size: 14,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Inter',
+                                size: 13
+                            },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.raw.toLocaleString();
+                                    return `${label}: ${value}`;
+                                }
+                            }
                         }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Inter',
+                                    size: 12
+                                },
+                                color: 'var(--gray-700)',
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Inter',
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                color: 'var(--gray-700)'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeInOutQuart'
                     }
                 }
             });
             
-            // Cases Distribution Pie Chart
+            // Cases Distribution Doughnut Chart with enhanced styling
             const ctxCases = document.getElementById('fraudChart').getContext('2d');
             new Chart(ctxCases, {
-                type: 'pie',
+                type: 'doughnut',
                 data: {
                     labels: ['Anomalies', 'Duplicates', 'Frauds', 'Agentic Reports'],
                     datasets: [{
                         data: [data.anomalies, data.duplicates, data.frauds, data.agentic_reports],
-                        backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56']
+                        backgroundColor: [
+                            'rgba(99, 102, 241, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(16, 185, 129, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(99, 102, 241, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(16, 185, 129, 1)'
+                        ],
+                        borderWidth: 2,
+                        hoverOffset: 20
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: true,
+                    cutout: '65%',
                     plugins: {
-                        title: {
-                            display: true,
-                            text: 'Cases by Analysis Type'
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: {
+                                    family: 'Inter',
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                color: 'var(--gray-700)'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 27, 75, 0.9)',
+                            titleFont: {
+                                family: 'Inter',
+                                size: 14,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Inter',
+                                size: 13
+                            },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw.toLocaleString();
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
                         }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 1500,
+                        easing: 'easeInOutQuart'
                     }
                 }
             });
             
-            // Populate cases table
+            // Populate cases table with enhanced styling
             if (data.cases && data.cases.length > 0) {
-                let html = '<table class="cases-table"><thead><tr><th>ID</th><th>Beneficiary ID</th><th>Prediction</th><th>Score</th><th>Status</th></tr></thead><tbody>';
-                data.cases.forEach(c => {
+                let html = '<table class="cases-table"><thead><tr><th><i class="fas fa-hashtag"></i> ID</th><th><i class="fas fa-user"></i> Beneficiary ID</th><th><i class="fas fa-brain"></i> Prediction</th><th><i class="fas fa-chart-line"></i> Score</th><th><i class="fas fa-info-circle"></i> Status</th></tr></thead><tbody>';
+                data.cases.forEach((c, index) => {
                     const score = c.anomaly_score || c.duplicate_risk || c.fraud_probability || 'N/A';
-                    html += `<tr><td>${c.id}</td><td>${c.beneficiary_id}</td><td>${c.prediction}</td><td>${score}</td><td>${c.status}</td></tr>`;
+                    const statusClass = getStatusClass(c.status);
+                    html += `<tr style="opacity: 0; transform: translateX(-20px); transition: opacity 0.3s ease ${index * 0.05}s, transform 0.3s ease ${index * 0.05}s;">
+                        <td><strong>#${c.id}</strong></td>
+                        <td>${c.beneficiary_id}</td>
+                        <td><span class="prediction-badge">${c.prediction}</span></td>
+                        <td><span class="score-badge">${score}</span></td>
+                        <td><span class="status-badge ${statusClass}">${c.status}</span></td>
+                    </tr>`;
                 });
                 html += '</tbody></table>';
-                document.getElementById('cases-table').innerHTML = html;
+                
+                const casesTableContainer = document.getElementById('cases-table');
+                casesTableContainer.innerHTML = html;
+                
+                // Animate table rows
+                const rows = casesTableContainer.querySelectorAll('tbody tr');
+                rows.forEach((row, index) => {
+                    // Trigger reflow
+                    void row.offsetWidth;
+                    
+                    // Animate in
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateX(0)';
+                });
             }
 
         } catch (error) {
             console.error("Dashboard load error:", error);
+            showNotification('Failed to load dashboard data', 'error');
         }
     }
 
-    loadDashboard();
-</script>
+    function getStatusClass(status) {
+        switch (status.toLowerCase()) {
+            case 'fraud': return 'fraud';
+            case 'duplicate': return 'duplicate';
+            case 'anomaly': return 'anomaly';
+            case 'resolved': return 'resolved';
+            default: return 'pending';
+        }
+    }
+
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas ${type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="close-btn" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Trigger reflow
+        void notification.offsetWidth;
+        
+        // Add show class
+        notification.classList.add('show');
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
+    }
+    </script>
 
 </body>
 </html>
