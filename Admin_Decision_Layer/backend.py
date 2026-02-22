@@ -4,7 +4,6 @@ import json
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-import re
 
 # LangChain
 from langchain_openai import ChatOpenAI
@@ -56,24 +55,6 @@ def final_risk_score(case_data):
             f"Registrations per Aadhaar: {case_data.get('registrations_per_aadhaar', 0)}"
         ]
     }
-
-def clean_json_response(response_text):
-    """Clean AI response by removing markdown code blocks and extracting JSON"""
-    # Remove markdown code blocks
-    response_text = re.sub(r'```\w*\n?', '', response_text)
-    response_text = re.sub(r'```', '', response_text)
-    
-    # Remove any leading/trailing whitespace
-    response_text = response_text.strip()
-    
-    # Find JSON object boundaries (from first { to last })
-    start_idx = response_text.find('{')
-    end_idx = response_text.rfind('}') + 1
-    
-    if start_idx != -1 and end_idx > start_idx:
-        response_text = response_text[start_idx:end_idx]
-    
-    return response_text
 
 # LangChain prompts
 explain_prompt = PromptTemplate(
@@ -194,10 +175,8 @@ def agentic_analyze():
     explanation_prompt_formatted = explain_prompt.format(nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud)
     explanation_raw = llm.invoke([{"role": "user", "content": explanation_prompt_formatted}]).content
     
-    # Clean the response and parse JSON
-    explanation_cleaned = clean_json_response(explanation_raw)
     try:
-        explanation_data = json.loads(explanation_cleaned)
+        explanation_data = json.loads(explanation_raw)
     except json.JSONDecodeError:
         explanation_data = {'summary': explanation_raw, 'key_points': []}
     
@@ -205,10 +184,8 @@ def agentic_analyze():
     audit_prompt_formatted = audit_prompt.format(nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud, explanation=json.dumps(explanation_data))
     audit_raw = llm.invoke([{"role": "user", "content": audit_prompt_formatted}]).content
     
-    # Clean the response and parse JSON
-    audit_cleaned = clean_json_response(audit_raw)
     try:
-        audit_data = json.loads(audit_cleaned)
+        audit_data = json.loads(audit_raw)
     except json.JSONDecodeError:
         audit_data = {'case_overview': audit_raw, 'key_fraud_indicators': [], 'evidence_summary': '', 'recommended_action': ''}
     

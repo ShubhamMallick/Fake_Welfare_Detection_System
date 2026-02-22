@@ -1528,11 +1528,7 @@ main button {
 <h1>Fraud Detection Pipeline</h1>
 
 <section class="intro" id="overview">
-    <h2>Overview
-        <button onclick="speakSection(this.parentElement.parentElement)" class="tts-button" title="Listen to this section">
-            <i class="fas fa-volume-up"></i>
-        </button>
-    </h2>
+    <h2>Overview</h2>
     <p>The Fraud Detection Pipeline is a comprehensive analytical tool designed to perform end-to-end fraud assessment on beneficiary data extracted from PDF documents. By integrating multiple AI-powered modules, it provides a holistic evaluation of potential fraudulent activities in welfare distribution systems.</p>
 
     <h2>Process Flow</h2>
@@ -1898,148 +1894,48 @@ let currentSpeech = null;
 function speakSection(sectionElement) {
     const button = sectionElement.querySelector('.tts-button');
     const text = extractTextFromSection(sectionElement);
-
-    console.log('🎤 TTS: Starting Chrome TTS debug...');
-    console.log('🎤 TTS: Browser:', navigator.userAgent);
-    console.log('🎤 TTS: Speech synthesis supported:', 'speechSynthesis' in window);
-    console.log('🎤 TTS: Text length:', text.length);
-    console.log('🎤 TTS: Text preview:', text.substring(0, 100) + '...');
-
-    // Check if speech synthesis is supported
-    if (!('speechSynthesis' in window)) {
-        alert('❌ Speech synthesis is not supported in this browser.');
-        console.error('❌ TTS: speechSynthesis not available');
-        return;
-    }
-
-    // Check if we're in Chrome
-    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    console.log('🎤 TTS: Is Chrome:', isChrome);
-
-    // Check speech synthesis state
-    console.log('🎤 TTS: Synthesis pending:', window.speechSynthesis.pending);
-    console.log('🎤 TTS: Synthesis speaking:', window.speechSynthesis.speaking);
-    console.log('🎤 TTS: Synthesis paused:', window.speechSynthesis.paused);
-
-    // Check if voices are available
-    let voices = window.speechSynthesis.getVoices();
-    console.log('🎤 TTS: Voices available:', voices.length);
-
-    if (voices.length === 0) {
-        console.warn('🎤 TTS: No voices available, waiting...');
-
-        // Wait for voices to load (Chrome sometimes loads voices asynchronously)
-        let voiceCheckCount = 0;
-        const voiceCheckInterval = setInterval(() => {
-            voices = window.speechSynthesis.getVoices();
-            console.log('🎤 TTS: Voice check', voiceCheckCount + 1, '- voices:', voices.length);
-
-            if (voices.length > 0 || voiceCheckCount >= 10) {
-                clearInterval(voiceCheckInterval);
-                if (voices.length > 0) {
-                    console.log('🎤 TTS: Voices loaded, retrying TTS...');
-                    speakSection(sectionElement); // Retry
-                } else {
-                    alert('❌ No speech voices available. Please refresh the page and try again.');
-                    console.error('❌ TTS: No voices available after waiting');
-                }
-            }
-            voiceCheckCount++;
-        }, 500);
-
-        return;
-    }
-
-    // Check if already speaking
-    if (window.speechSynthesis.speaking) {
-        console.log('🎤 TTS: Already speaking, stopping current speech');
-        window.speechSynthesis.cancel();
+    
+    if (currentSpeech && !currentSpeech.paused) {
+        // Stop current speech
+        currentSpeech.stop();
         button.classList.remove('speaking');
         button.innerHTML = '<i class="fas fa-volume-up"></i>';
         return;
     }
-
+    
     if (currentSpeech) {
-        console.log('🎤 TTS: Stopping previous speech instance');
-        window.speechSynthesis.cancel();
+        currentSpeech.stop();
     }
-
-    // Create utterance
-    console.log('🎤 TTS: Creating speech utterance');
+    
+    // Start new speech
     currentSpeech = new SpeechSynthesisUtterance(text);
-
-    // Configure speech settings for Chrome
+    
+    // Configure speech settings
     currentSpeech.rate = 0.9; // Slightly slower than default
     currentSpeech.pitch = 1; // Normal pitch
     currentSpeech.volume = 0.8; // Slightly quieter
-    currentSpeech.lang = 'en-US'; // Force English
-
-    // Try to select a good voice for Chrome
-    if (voices.length > 0) {
-        // Prefer native Chrome voices
-        const chromeVoice = voices.find(voice =>
-            voice.name.includes('Google') ||
-            voice.name.includes('Chrome') ||
-            voice.name.includes('Microsoft') ||
-            voice.lang.startsWith('en')
-        );
-
-        if (chromeVoice) {
-            currentSpeech.voice = chromeVoice;
-            console.log('🎤 TTS: Selected voice:', chromeVoice.name, chromeVoice.lang);
-        } else {
-            console.log('🎤 TTS: Using default voice:', voices[0].name, voices[0].lang);
-        }
-    }
-
-    // Set up event handlers
-    currentSpeech.onstart = function() {
-        console.log('✅ TTS: Speech started successfully!');
-        button.classList.add('speaking');
-        button.innerHTML = '<i class="fas fa-stop"></i>';
-    };
-
+    
+    // Update button state
+    button.classList.add('speaking');
+    button.innerHTML = '<i class="fas fa-stop"></i>';
+    
+    // Handle speech end
     currentSpeech.onend = function() {
-        console.log('✅ TTS: Speech ended normally');
         button.classList.remove('speaking');
         button.innerHTML = '<i class="fas fa-volume-up"></i>';
         currentSpeech = null;
     };
-
-    currentSpeech.onerror = function(event) {
-        console.error('❌ TTS: Speech error:', event.error, event);
+    
+    // Handle speech error
+    currentSpeech.onerror = function() {
         button.classList.remove('speaking');
         button.innerHTML = '<i class="fas fa-volume-up"></i>';
         currentSpeech = null;
-
-        // Provide specific error messages for Chrome
-        let errorMessage = 'Speech synthesis failed.';
-        switch(event.error) {
-            case 'not-allowed':
-                errorMessage = 'Speech blocked by browser. Check Chrome settings:\n1. Go to chrome://settings/content/speechSynthesis\n2. Allow sites to use speech synthesis\n3. Refresh page and try again';
-                break;
-            case 'no-speech':
-                errorMessage = 'No speech was produced. Try:\n1. Clicking a different TTS button\n2. Refreshing the page\n3. Checking Chrome speech settings';
-                break;
-            case 'audio-busy':
-                errorMessage = 'Audio system busy. Close other audio applications.';
-                break;
-            default:
-                errorMessage = `Speech error: ${event.error}. Check browser console for details.`;
-        }
-
-        alert(errorMessage);
+        console.error('Speech synthesis error');
     };
-
+    
     // Start speaking
-    console.log('🎤 TTS: Calling speechSynthesis.speak()...');
-    try {
-        window.speechSynthesis.speak(currentSpeech);
-        console.log('✅ TTS: speak() method called successfully');
-    } catch (error) {
-        console.error('❌ TTS: Exception calling speak():', error);
-        alert('Error starting speech: ' + error.message);
-    }
+    window.speechSynthesis.speak(currentSpeech);
 }
 
 function extractTextFromSection(sectionElement) {
@@ -2070,7 +1966,7 @@ function extractTextFromSection(sectionElement) {
 // Stop all speech when page unloads
 window.addEventListener('beforeunload', function() {
     if (currentSpeech) {
-        window.speechSynthesis.stop();
+        currentSpeech.stop();
     }
 });
 
