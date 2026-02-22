@@ -10,6 +10,7 @@ import uvicorn
 import importlib
 import re
 import asyncio
+import os
 import numpy as np
 
 templates = Jinja2Templates(directory="templates")
@@ -284,4 +285,5 @@ def root(request: Request):
     return templates.TemplateResponse("nlp.html", {"request": request})
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

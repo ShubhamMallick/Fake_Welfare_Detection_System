@@ -1,8 +1,7 @@
-version: '3.8'
-
 services:
   fraud-detection-api:
     build: .
+    env_file: .env
     ports:
       - "8000:8000"
     environment:
