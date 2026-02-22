@@ -144,7 +144,141 @@ OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_API_BASE=https://api.openai.com/v1  # or your preferred endpoint
 ```
 
-## 🚀 Running the Application
+## � Docker Deployment (Recommended)
+
+The application now includes full Docker support for easy deployment and sharing.
+
+### Prerequisites
+- Docker Desktop installed and running
+- Git (for version control)
+
+### Quick Start with Docker
+
+#### 1) Clone Repository
+```bash
+git clone https://github.com/yourusername/Prayatna.git
+cd Prayatna
+```
+
+#### 2) Configure Environment
+Create `.env` file:
+```bash
+echo "OPENAI_API_KEY=your_api_key_here" > .env
+echo "OPENAI_BASE_URL=https://openrouter.ai/api/v1" >> .env
+```
+
+#### 3) Build and Run
+```bash
+# Build Docker image
+docker-compose build
+
+# Start application
+docker-compose up -d
+
+# Check status
+docker-compose ps
+```
+
+#### 4) Access Application
+- **Main Interface:** http://localhost:8000/pipeline-page
+- **API Docs:** http://localhost:8000/docs
+
+### Docker Commands Reference
+
+```bash
+# Build image
+docker-compose build
+
+# Start application
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop application
+docker-compose down
+
+# Restart
+docker-compose restart
+
+# Clean rebuild
+docker-compose down && docker-compose build --no-cache && docker-compose up -d
+```
+
+### Project Structure (Updated)
+
+```
+Prayatna/
+├── main.py                           # FastAPI main application
+├── requirements.txt                  # Python dependencies
+├── Dockerfile                        # Docker image configuration
+├── docker-compose.yml               # Docker Compose configuration
+├── .dockerignore                    # Docker ignore file
+├── admin_decisions.json              # Admin decision storage
+├── README.md                         # This file
+│
+├── templates/                        # Jinja2 HTML templates
+│   ├── pipeline.html                 # Main pipeline interface with voice nav
+│   ├── nlp.html                      # NLP extraction UI
+│   └── ...                           # Other templates
+│
+├── NLP_Extractor/                    # NLP processing module
+├── Anomaly_Detection/               # Anomaly detection module
+├── Duplicate_Detection/             # Duplicate detection module
+├── Fraud_Network_Analysis/          # Network analysis module
+├── Admin_Decision_Layer/           # Admin decision module
+└── Agentic_Reasoning/              # AI reasoning module
+```
+
+## 🌐 Live Deployment Options
+
+Deploy your Docker application to live servers for sharing with others.
+
+### 🚀 Render (Free, Recommended)
+
+1. **Sign up:** Go to [render.com](https://render.com)
+2. **Connect:** Link your GitHub repository
+3. **Configure:**
+   - Runtime: `Docker`
+   - Service Name: `prayatna-fraud-detection`
+   - Environment Variables: `OPENAI_API_KEY`, `OPENAI_BASE_URL`
+4. **Deploy:** Click "Create Web Service"
+5. **Access:** `https://your-app.onrender.com/pipeline-page`
+
+### 🚂 Railway
+
+1. **Sign up:** [railway.app](https://railway.app)
+2. **Connect:** GitHub repository
+3. **Auto-deploy:** Railway detects Docker automatically
+4. **Configure:** Add environment variables
+5. **Access:** `https://your-project.up.railway.app/pipeline-page`
+
+### 🏠 VPS Deployment
+
+For full control, deploy to a VPS (DigitalOcean, $5/month):
+
+```bash
+# On your VPS server
+sudo apt update
+sudo apt install docker.io docker-compose
+git clone https://github.com/yourusername/Prayatna.git
+cd Prayatna
+docker-compose up -d
+```
+
+### 🔗 Share with Friends
+
+**Temporary Sharing (5 minutes):**
+```bash
+# Install ngrok
+npm install -g ngrok
+ngrok http 8000
+# Share the https://abc123.ngrok.io URL
+```
+
+**Permanent Sharing:** Use Render/Railway deployment above.
+
+## �🚀 Running the Application
 
 Start the integrated FastAPI server using uvicorn:
 

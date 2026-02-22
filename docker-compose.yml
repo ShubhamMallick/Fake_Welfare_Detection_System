@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  fraud-detection-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+      - ENVIRONMENT=production
+    volumes:
+      # Mount model files if they're large
+      - ./Anomaly_Detection:/app/Anomaly_Detection:ro
+      - ./Duplicate_Detection:/app/Duplicate_Detection:ro
+      - ./Fraud_Network_Analysis:/app/Fraud_Network_Analysis:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
