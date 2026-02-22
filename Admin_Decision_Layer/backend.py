@@ -4,6 +4,7 @@ import json
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+import re
 
 # LangChain
 from langchain_openai import ChatOpenAI
@@ -19,23 +20,13 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_API_BASE = os.getenv("OPENAI_API_BASE", "https://openrouter.ai/api/v1")
 
 llm = ChatOpenAI(
-    model="openai/gpt-oss-20b:free",  # Valid free model
+    model="openai/gpt-oss-20b:free",
     temperature=0,
     api_key=OPENAI_API_KEY,
     base_url=OPENAI_API_BASE,
 )
 
 DATA_FILE = 'admin_decisions.json'
-
-def clean_json_response(text):
-    """Remove markdown code blocks from JSON response"""
-    if text.startswith('```json'):
-        text = text[7:]  # Remove ```json
-    if text.startswith('```'):
-        text = text[3:]  # Remove ```
-    if text.endswith('```'):
-        text = text[:-3]  # Remove ```
-    return text.strip()
 
 def load_decisions():
     if os.path.exists(DATA_FILE):
@@ -65,6 +56,24 @@ def final_risk_score(case_data):
             f"Registrations per Aadhaar: {case_data.get('registrations_per_aadhaar', 0)}"
         ]
     }
+
+def clean_json_response(response_text):
+    """Clean AI response by removing markdown code blocks and extracting JSON"""
+    # Remove markdown code blocks
+    response_text = re.sub(r'```\w*\n?', '', response_text)
+    response_text = re.sub(r'```', '', response_text)
+    
+    # Remove any leading/trailing whitespace
+    response_text = response_text.strip()
+    
+    # Find JSON object boundaries (from first { to last })
+    start_idx = response_text.find('{')
+    end_idx = response_text.rfind('}') + 1
+    
+    if start_idx != -1 and end_idx > start_idx:
+        response_text = response_text[start_idx:end_idx]
+    
+    return response_text
 
 # LangChain prompts
 explain_prompt = PromptTemplate(
@@ -166,78 +175,47 @@ def get_audit():
 
 @app.route('/agentic-reasoning/analyze', methods=['POST'])
 def agentic_analyze():
+    data = request.json
+    
+    if 'case_data' in data:
+        # Standalone mode (from agentic page)
+        nlp = "Not available (standalone mode)"
+        anomaly = "Not available (standalone mode)"
+        duplicate = "Not available (standalone mode)"
+        fraud = json.dumps(data['case_data'])
+    else:
+        # Pipeline mode (from pipeline endpoint)
+        nlp = json.dumps(data.get('nlp_extraction', {}))
+        anomaly = json.dumps(data.get('anomaly_detection', {}))
+        duplicate = json.dumps(data.get('duplicate_detection', {}))
+        fraud = json.dumps(data.get('fraud_network_analysis', {}))
+    
+    # Generate explanation
+    explanation_prompt_formatted = explain_prompt.format(nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud)
+    explanation_raw = llm.invoke([{"role": "user", "content": explanation_prompt_formatted}]).content
+    
+    # Clean the response and parse JSON
+    explanation_cleaned = clean_json_response(explanation_raw)
     try:
-        data = request.json
-        
-        # Check if API key is available
-        if not OPENAI_API_KEY:
-            return jsonify({
-                'error': 'OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.',
-                'error_type': 'ConfigurationError'
-            }), 500
-        
-        if 'case_data' in data:
-            # Standalone mode (from agentic page)
-            nlp = "Not available (standalone mode)"
-            anomaly = "Not available (standalone mode)"
-            duplicate = "Not available (standalone mode)"
-            fraud = json.dumps(data['case_data'])
-        else:
-            # Pipeline mode (from pipeline endpoint)
-            nlp = json.dumps(data.get('nlp_extraction', {}))
-            anomaly = json.dumps(data.get('anomaly_detection', {}))
-            duplicate = json.dumps(data.get('duplicate_detection', {}))
-            fraud = json.dumps(data.get('fraud_network_analysis', {}))
-        
-        # Generate explanation
-        explanation_prompt_formatted = explain_prompt.format(nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud)
-        explanation_result = llm.invoke([{"role": "user", "content": explanation_prompt_formatted}])
-        explanation_raw = clean_json_response(explanation_result.content)
-        
-        try:
-            explanation_data = json.loads(explanation_raw)
-        except json.JSONDecodeError:
-            explanation_data = {'summary': explanation_raw, 'key_points': []}
-        
-        # Generate audit summary
-        audit_prompt_formatted = audit_prompt.format(nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud, explanation=json.dumps(explanation_data))
-        audit_result = llm.invoke([{"role": "user", "content": audit_prompt_formatted}])
-        audit_raw = clean_json_response(audit_result.content)
-        
-        try:
-            audit_data = json.loads(audit_raw)
-        except json.JSONDecodeError:
-            audit_data = {'case_overview': audit_raw, 'key_fraud_indicators': [], 'evidence_summary': '', 'recommended_action': ''}
-        
-        return jsonify({
-            'explanation': explanation_data,
-            'audit_summary': audit_data
-        })
-        
-    except Exception as e:
-        # Handle specific errors
-        error_msg = str(e)
-        if "AuthenticationError" in str(type(e)) or "401" in error_msg:
-            return jsonify({
-                'error': 'AI service authentication failed. Please check your OpenRouter API key configuration.',
-                'error_type': 'AuthenticationError',
-                'details': str(e)
-            }), 500
-        elif "RateLimitError" in str(type(e)) or "429" in error_msg:
-            return jsonify({
-                'error': 'AI service rate limit exceeded. Please try again later or upgrade your plan.',
-                'error_type': 'RateLimitError'
-            }), 500
-        elif "APIConnectionError" in str(type(e)):
-            return jsonify({
-                'error': 'Unable to connect to AI service. Please check your internet connection.',
-                'error_type': 'ConnectionError'
-            }), 500
-        else:
-            return jsonify({
-                'error': f'An unexpected error occurred: {error_msg}',
-                'error_type': type(e).__name__
-            }), 500
+        explanation_data = json.loads(explanation_cleaned)
+    except json.JSONDecodeError:
+        explanation_data = {'summary': explanation_raw, 'key_points': []}
+    
+    # Generate audit summary
+    audit_prompt_formatted = audit_prompt.format(nlp=nlp, anomaly=anomaly, duplicate=duplicate, fraud=fraud, explanation=json.dumps(explanation_data))
+    audit_raw = llm.invoke([{"role": "user", "content": audit_prompt_formatted}]).content
+    
+    # Clean the response and parse JSON
+    audit_cleaned = clean_json_response(audit_raw)
+    try:
+        audit_data = json.loads(audit_cleaned)
+    except json.JSONDecodeError:
+        audit_data = {'case_overview': audit_raw, 'key_fraud_indicators': [], 'evidence_summary': '', 'recommended_action': ''}
+    
+    return jsonify({
+        'explanation': explanation_data,
+        'audit_summary': audit_data
+    })
 
 # Mock some cases for demo
 @app.route('/init-cases')
