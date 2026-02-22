@@ -253,6 +253,16 @@ Deploy your Docker application to live servers for sharing with others.
 4. **Configure:** Add environment variables
 5. **Access:** `https://your-project.up.railway.app/pipeline-page`
 
+### Current Deployment Status
+
+**✅ Successfully Deployed on Railway:** The application is live and operational on Railway, supporting large Docker images (3.17GB+).
+
+- **Status:** Live and healthy
+- **URL:** Check your Railway project dashboard for the generated URL, then navigate to `/pipeline-page`
+- **Features:** Complete fraud detection pipeline with NLP extraction, anomaly detection, duplicate detection, fraud network analysis, and AI-powered agentic reasoning
+- **Voice Navigation:** Hands-free operation with voice commands
+- **Environment:** Production-ready with OpenAI API integration
+
 ### 🏠 VPS Deployment
 
 For full control, deploy to a VPS (DigitalOcean, $5/month):
